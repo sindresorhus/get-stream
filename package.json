@@ -40,5 +40,8 @@
     "ignores": [
       "test.js"
     ]
+  },
+  "dependencies": {
+    "pinkie-promise": "^1.0.0"
   }
 }
