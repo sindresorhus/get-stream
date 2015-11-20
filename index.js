@@ -1,14 +1,16 @@
 'use strict';
 
-module.exports = function (stream) {
+module.exports = function (stream, opts) {
 	if (!stream) {
 		return Promise.reject(new Error('Expected a stream'));
 	}
 
+	opts = opts || {};
+
 	var ret = '';
 
 	return new Promise(function (resolve, reject) {
-		stream.setEncoding('utf8');
+		stream.setEncoding(opts.encoding || 'utf8');
 
 		stream.on('readable', function () {
 			var chunk;
