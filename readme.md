@@ -48,9 +48,18 @@ getStream(stream).then(str => {
 
 Both methods returns a promise that is resolved when the `end` event fires on the stream, indicating that there is no more data to be read.
 
-### getStream(stream)
+### getStream(stream, [options])
 
 Get the stream as a string.
+
+#### options
+
+##### encoding
+
+Type: `string`
+Default: `utf8`
+
+Encoding of incoming stream, could be on of listed in [Buffer documentation](https://nodejs.org/api/buffer.html#buffer_buffer).
 
 ### getStream.buffer(stream)
 
