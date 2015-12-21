@@ -35,10 +35,5 @@
     "ava": "*",
     "buffer-equals": "^1.0.3",
     "xo": "*"
-  },
-  "xo": {
-    "ignores": [
-      "test.js"
-    ]
   }
 }
