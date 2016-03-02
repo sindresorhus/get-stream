@@ -12,12 +12,8 @@ module.exports = function (stream, opts) {
 	return new Promise(function (resolve, reject) {
 		stream.setEncoding(opts.encoding || 'utf8');
 
-		stream.on('readable', function () {
-			var chunk;
-
-			while ((chunk = stream.read())) {
-				ret += chunk;
-			}
+		stream.on('data', function (chunk) {
+			ret += chunk;
 		});
 
 		stream.on('error', reject);
@@ -37,13 +33,9 @@ module.exports.buffer = function (stream) {
 	var len = 0;
 
 	return new Promise(function (resolve, reject) {
-		stream.on('readable', function () {
-			var chunk;
-
-			while ((chunk = stream.read())) {
-				ret.push(chunk);
-				len += chunk.length;
-			}
+		stream.on('data', function (chunk) {
+			ret.push(chunk);
+			len += chunk.length;
 		});
 
 		stream.on('error', reject);
