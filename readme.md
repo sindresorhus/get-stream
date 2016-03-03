@@ -56,7 +56,7 @@ Get the stream as a string.
 
 ##### encoding
 
-Type: `string`
+Type: `string`<br>
 Default: `utf8`
 
 [Encoding](https://nodejs.org/api/buffer.html#buffer_buffer) of the incoming stream.
@@ -70,7 +70,7 @@ Get the stream as a buffer.
 
 ### How is this different from [`concat-stream`](https://github.com/maxogden/concat-stream)?
 
-This one accepts a stream instead of being one and returns a promise instead of using a callback. The API is simpler and it only supports returning a string or buffer. It doesn't have a fragile type inference. You explicitly choose what you want. It supports back-pressure and it doesn't depend on the huge `readable-stream` package.
+This one accepts a stream instead of being one and returns a promise instead of using a callback. The API is simpler and it only supports returning a string or buffer. It doesn't have a fragile type inference. You explicitly choose what you want. And it doesn't depend on the huge `readable-stream` package.
 
 
 ## Related
@@ -80,4 +80,4 @@ This one accepts a stream instead of being one and returns a promise instead of 
 
 ## License
 
-MIT © [Sindre Sorhus](http://sindresorhus.com)
+MIT © [Sindre Sorhus](https://sindresorhus.com)
