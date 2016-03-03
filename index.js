@@ -8,23 +8,24 @@ module.exports = function (stream, opts) {
 	opts = opts || {};
 
 	var ret = '';
+	function onData(chunk) {
+		ret += chunk;
+	}
 
-	return new Promise(function (resolve, reject) {
+	var p = new Promise(function (resolve, reject) {
 		stream.setEncoding(opts.encoding || 'utf8');
 
-		stream.on('readable', function () {
-			var chunk;
-
-			while ((chunk = stream.read())) {
-				ret += chunk;
-			}
-		});
-
+		stream.on('data', onData);
 		stream.on('error', reject);
+		stream.on('end', resolve);
+	});
 
-		stream.on('end', function () {
-			resolve(ret);
-		});
+	var clean = function () {
+		stream.removeListener('data', onData);
+	};
+	p.then(clean, clean);
+	return p.then(function () {
+		return ret;
 	});
 };
 
@@ -35,21 +36,22 @@ module.exports.buffer = function (stream) {
 
 	var ret = [];
 	var len = 0;
+	function onData(chunk) {
+		ret.push(chunk);
+		len += chunk.length;
+	}
 
-	return new Promise(function (resolve, reject) {
-		stream.on('readable', function () {
-			var chunk;
-
-			while ((chunk = stream.read())) {
-				ret.push(chunk);
-				len += chunk.length;
-			}
-		});
-
+	var p = new Promise(function (resolve, reject) {
+		stream.on('data', onData);
 		stream.on('error', reject);
+		stream.on('end', resolve);
+	});
 
-		stream.on('end', function () {
-			resolve(Buffer.concat(ret, len));
-		});
+	var clean = function () {
+		stream.removeListener('data', onData);
+	};
+	p.then(clean, clean);
+	return p.then(function () {
+		return Buffer.concat(ret, len);
 	});
 };

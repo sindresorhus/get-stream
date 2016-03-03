@@ -46,7 +46,7 @@ getStream(stream).then(str => {
 
 ## API
 
-Both methods returns a promise that is resolved when the `end` event fires on the stream, indicating that there is no more data to be read.
+Both methods returns a promise that is resolved when the `end` event fires on the stream, indicating that there is no more data to be read. The stream is switched to flowing mode.
 
 ### getStream(stream, [options])
 
