@@ -18,6 +18,7 @@ test('get stream as a buffer', async t => {
 
 test('get stream as an array', async t => {
 	const fixture = fs.createReadStream('index.js', 'utf8');
+	fixture.setEncoding('utf8');
 	t.is(typeof (await m.array(fixture))[0], 'string');
 });
 
