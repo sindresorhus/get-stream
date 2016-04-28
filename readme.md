@@ -1,6 +1,6 @@
 # get-stream [![Build Status](https://travis-ci.org/sindresorhus/get-stream.svg?branch=master)](https://travis-ci.org/sindresorhus/get-stream)
 
-> Get a stream as a string or buffer
+> Get a stream as a string, buffer, or array
 
 
 ## Install
@@ -46,11 +46,11 @@ getStream(stream).then(str => {
 
 ## API
 
-Both methods returns a promise that is resolved when the `end` event fires on the stream, indicating that there is no more data to be read. The stream is switched to flowing mode.
+The methods returns a promise that is resolved when the `end` event fires on the stream, indicating that there is no more data to be read. The stream is switched to flowing mode.
 
 ### getStream(stream, [options])
 
-Get the stream as a string.
+Get the `stream` as a string.
 
 #### options
 
@@ -63,14 +63,20 @@ Default: `utf8`
 
 ### getStream.buffer(stream)
 
-Get the stream as a buffer.
+Get the `stream` as a buffer.
+
+### getStream.array(stream)
+
+Get the `stream` as an array of values.
+
+Especially useful for [object mode streams](https://nodesource.com/blog/understanding-object-streams/).
 
 
 ## FAQ
 
 ### How is this different from [`concat-stream`](https://github.com/maxogden/concat-stream)?
 
-This one accepts a stream instead of being one and returns a promise instead of using a callback. The API is simpler and it only supports returning a string or buffer. It doesn't have a fragile type inference. You explicitly choose what you want. And it doesn't depend on the huge `readable-stream` package.
+This module accepts a stream instead of being one and returns a promise instead of using a callback. The API is simpler and it only supports returning a string, buffer, or array. It doesn't have a fragile type inference. You explicitly choose what you want. And it doesn't depend on the huge `readable-stream` package.
 
 
 ## Related

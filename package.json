@@ -1,7 +1,7 @@
 {
   "name": "get-stream",
   "version": "2.0.0",
-  "description": "Get a stream as a string or buffer",
+  "description": "Get a stream as a string, buffer, or array",
   "license": "MIT",
   "repository": "sindresorhus/get-stream",
   "author": {
@@ -29,7 +29,11 @@
     "process",
     "read",
     "data",
-    "readable"
+    "readable",
+    "readablestream",
+    "array",
+    "object",
+    "obj"
   ],
   "dependencies": {
     "pinkie-promise": "^2.0.0"
@@ -37,6 +41,7 @@
   "devDependencies": {
     "ava": "*",
     "buffer-equals": "^1.0.3",
+    "into-stream": "^2.0.1",
     "xo": "*"
   }
 }

@@ -61,3 +61,31 @@ module.exports.buffer = function (stream) {
 		return Buffer.concat(ret, len);
 	});
 };
+
+module.exports.array = function (stream) {
+	if (!stream) {
+		return Promise.reject(new Error('Expected a stream'));
+	}
+
+	var ret = [];
+
+	function onData(obj) {
+		ret.push(obj);
+	}
+
+	var p = new Promise(function (resolve, reject) {
+		stream.on('data', onData);
+		stream.on('error', reject);
+		stream.on('end', resolve);
+	});
+
+	var clean = function () {
+		stream.removeListener('data', onData);
+	};
+
+	p.then(clean, clean);
+
+	return p.then(function () {
+		return ret;
+	});
+};
