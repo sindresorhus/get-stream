@@ -26,3 +26,12 @@ test('get object stream as an array', async t => {
 	const fixture = [{foo: true}, {bar: false}];
 	t.deepEqual(await m.array(intoStream.obj(fixture)), fixture);
 });
+
+test('getStream should not affect additional listeners attached to the stream', async t => {
+	t.plan(3);
+	const fixture = intoStream(['foo', 'bar']);
+
+	fixture.on('data', chunk => t.true(Buffer.isBuffer(chunk)));
+
+	t.is(await m(fixture), 'foobar');
+});
