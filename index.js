@@ -8,31 +8,34 @@ function getStream(inputStream, opts) {
 	}
 
 	var stream;
-	var encoding = (opts && opts.encoding) || 'utf8';
+	var array = opts && opts.array;
+	var encoding = opts && opts.encoding;
 	var buffer = encoding === 'buffer';
-	var array = encoding === 'array';
+	var objectMode = false;
 
-	if (buffer || array) {
+	if (array) {
+		objectMode = !(encoding || buffer);
+	} else {
+		encoding = encoding || 'utf8';
+	}
+
+	if (buffer) {
 		encoding = null;
 	}
 
 	var len = 0;
-	var ret = encoding ? '' : [];
+	var ret = [];
 
 	function onData(chunk) {
 		if (buffer) {
 			len += chunk.length;
 		}
 
-		if (encoding) {
-			ret += chunk;
-		} else {
-			ret.push(chunk);
-		}
+		ret.push(chunk);
 	}
 
 	var p = new Promise(function (resolve, reject) {
-		stream = new PassThrough({objectMode: array});
+		stream = new PassThrough({objectMode: objectMode});
 		inputStream.pipe(stream);
 
 		if (encoding) {
@@ -51,7 +54,10 @@ function getStream(inputStream, opts) {
 	p.then(clean, clean);
 
 	return p.then(function () {
-		return buffer ? Buffer.concat(ret, len) : ret;
+		if (array) {
+			return ret;
+		}
+		return buffer ? Buffer.concat(ret, len) : ret.join('');
 	});
 }
 
@@ -61,6 +67,6 @@ module.exports.buffer = function (stream) {
 	return getStream(stream, {encoding: 'buffer'});
 };
 
-module.exports.array = function (stream) {
-	return getStream(stream, {encoding: 'array'});
+module.exports.array = function (stream, opts) {
+	return getStream(stream, {array: true, encoding: opts && opts.encoding});
 };

@@ -27,6 +27,22 @@ test('get object stream as an array', async t => {
 	t.deepEqual(await m.array(intoStream.obj(fixture)), fixture);
 });
 
+test('get non-object stream as an array of strings', async t => {
+	const stream = intoStream(['foo', 'bar']);
+
+	const result = await m.array(stream, {encoding: 'utf8'});
+
+	t.deepEqual(result, ['foo', 'bar']);
+});
+
+test('get non-object stream as an array of Buffers', async t => {
+	const stream = intoStream(['foo', 'bar']);
+
+	const result = await m.array(stream, {encoding: 'buffer'});
+
+	t.deepEqual(result, [new Buffer('foo'), new Buffer('bar')]);
+});
+
 test('getStream should not affect additional listeners attached to the stream', async t => {
 	t.plan(3);
 	const fixture = intoStream(['foo', 'bar']);
