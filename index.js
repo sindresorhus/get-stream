@@ -1,16 +1,18 @@
 'use strict';
+var PassThrough = require('stream').PassThrough;
 var Promise = require('pinkie-promise');
 
-function getStream(stream, opts) {
-	if (!stream) {
+function getStream(inputStream, opts) {
+	if (!inputStream) {
 		return Promise.reject(new Error('Expected a stream'));
 	}
 
-	opts = opts || {};
-	var encoding = opts.encoding || 'utf8';
+	var stream;
+	var encoding = (opts && opts.encoding) || 'utf8';
 	var buffer = encoding === 'buffer';
+	var array = encoding === 'array';
 
-	if (buffer || encoding === 'array') {
+	if (buffer || array) {
 		encoding = null;
 	}
 
@@ -30,6 +32,9 @@ function getStream(stream, opts) {
 	}
 
 	var p = new Promise(function (resolve, reject) {
+		stream = new PassThrough({objectMode: array});
+		inputStream.pipe(stream);
+
 		if (encoding) {
 			stream.setEncoding(encoding);
 		}
