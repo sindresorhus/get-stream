@@ -7,12 +7,12 @@ function getStream(inputStream, opts) {
 		return Promise.reject(new Error('Expected a stream'));
 	}
 
-	opts = opts || {};
 	var stream;
-	var encoding = opts.encoding || 'utf8';
+	var encoding = (opts && opts.encoding) || 'utf8';
 	var buffer = encoding === 'buffer';
+	var array = encoding === 'array';
 
-	if (buffer || encoding === 'array') {
+	if (buffer || array) {
 		encoding = null;
 	}
 
@@ -32,7 +32,7 @@ function getStream(inputStream, opts) {
 	}
 
 	var p = new Promise(function (resolve, reject) {
-		stream = new PassThrough({objectMode: !encoding && !buffer});
+		stream = new PassThrough({objectMode: array});
 		inputStream.pipe(stream);
 
 		if (encoding) {
