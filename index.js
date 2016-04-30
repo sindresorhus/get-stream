@@ -51,7 +51,7 @@ function getStream(inputStream, opts) {
 			}
 
 			if (len > maxBuffer) {
-				reject(new Error('maxBuffer'));
+				reject(new Error('maxBuffer exceeded'));
 			}
 		};
 

@@ -71,13 +71,13 @@ test('maxBuffer throws when size is exceeded', t => {
 });
 
 test('maxBuffer applies to length of arrays when in objectMode', t => {
-	t.throws(m.array(intoStream.obj([{a: 1}, {b: 2}, {c: 3}, {d: 4}]), {maxBuffer: 3}));
+	t.throws(m.array(intoStream.obj([{a: 1}, {b: 2}, {c: 3}, {d: 4}]), {maxBuffer: 3}), /maxBuffer exceeded/);
 	t.notThrows(m.array(intoStream.obj([{a: 1}, {b: 2}, {c: 3}]), {maxBuffer: 3}));
 });
 
 test('maxBuffer applies to length of data when not in objectMode', t => {
-	t.throws(setup.array(['ab', 'cd', 'ef'], {encoding: 'utf8', maxBuffer: 5}));
+	t.throws(setup.array(['ab', 'cd', 'ef'], {encoding: 'utf8', maxBuffer: 5}), /maxBuffer exceeded/);
 	t.notThrows(setup.array(['ab', 'cd', 'ef'], {encoding: 'utf8', maxBuffer: 6}));
-	t.throws(setup.array(['ab', 'cd', 'ef'], {encoding: 'buffer', maxBuffer: 5}));
+	t.throws(setup.array(['ab', 'cd', 'ef'], {encoding: 'buffer', maxBuffer: 5}), /maxBuffer exceeded/);
 	t.notThrows(setup.array(['ab', 'cd', 'ef'], {encoding: 'buffer', maxBuffer: 6}));
 });
