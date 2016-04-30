@@ -10,6 +10,12 @@ function getStream(inputStream, opts) {
 	var stream;
 	var array = opts && opts.array;
 	var encoding = opts && opts.encoding;
+	var maxBuffer = opts && opts.maxBuffer;
+
+	if (typeof maxBuffer !== 'number') {
+		maxBuffer = Infinity;
+	}
+
 	var buffer = encoding === 'buffer';
 	var objectMode = false;
 
@@ -25,14 +31,7 @@ function getStream(inputStream, opts) {
 
 	var len = 0;
 	var ret = [];
-
-	function onData(chunk) {
-		if (buffer) {
-			len += chunk.length;
-		}
-
-		ret.push(chunk);
-	}
+	var clean;
 
 	var p = new Promise(function (resolve, reject) {
 		stream = new PassThrough({objectMode: objectMode});
@@ -42,14 +41,28 @@ function getStream(inputStream, opts) {
 			stream.setEncoding(encoding);
 		}
 
+		var onData = function (chunk) {
+			ret.push(chunk);
+
+			if (objectMode) {
+				len = ret.length;
+			} else {
+				len += chunk.length;
+			}
+
+			if (len > maxBuffer) {
+				reject(new Error('maxBuffer'));
+			}
+		};
+
 		stream.on('data', onData);
 		stream.on('error', reject);
 		stream.on('end', resolve);
-	});
 
-	var clean = function () {
-		stream.removeListener('data', onData);
-	};
+		clean = function () {
+			stream.removeListener('data', onData);
+		};
+	});
 
 	p.then(clean, clean);
 
@@ -63,10 +76,17 @@ function getStream(inputStream, opts) {
 
 module.exports = getStream;
 
-module.exports.buffer = function (stream) {
-	return getStream(stream, {encoding: 'buffer'});
+module.exports.buffer = function (stream, opts) {
+	return getStream(stream, {
+		encoding: 'buffer',
+		maxBuffer: opts && opts.maxBuffer
+	});
 };
 
 module.exports.array = function (stream, opts) {
-	return getStream(stream, {array: true, encoding: opts && opts.encoding});
+	return getStream(stream, {
+		array: true,
+		encoding: opts && opts.encoding,
+		maxBuffer: opts && opts.maxBuffer
+	});
 };
