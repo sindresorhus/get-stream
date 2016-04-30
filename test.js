@@ -4,22 +4,24 @@ import bufferEquals from 'buffer-equals';
 import intoStream from 'into-stream';
 import m from './';
 
-function setup(streamDef, opts) {
-	return m(intoStream(streamDef), opts);
+function makeSetup(intoStream) {
+	function setup(streamDef, opts) {
+		return m(intoStream(streamDef), opts);
+	}
+
+	setup.array = function setup(streamDef, opts) {
+		return m.array(intoStream(streamDef), opts);
+	};
+
+	setup.buffer = function setup(streamDef, opts) {
+		return m.buffer(intoStream(streamDef), opts);
+	};
+
+	return setup;
 }
 
-setup.array = function setup(streamDef, opts) {
-	return m.array(intoStream(streamDef), opts);
-};
-
-setup.buffer = function setup(streamDef, opts) {
-	return m.buffer(intoStream(streamDef), opts);
-};
-
-test('get stream as a string', async t => {
-	t.is(await m(fs.createReadStream('fixture')), 'unicorn\n');
-	t.is(await m(fs.createReadStream('fixture'), {encoding: 'hex'}), '756e69636f726e0a');
-});
+const setup = makeSetup(intoStream);
+setup.obj = makeSetup(intoStream.obj);
 
 test('get stream as a buffer', async t => {
 	t.true(
@@ -35,22 +37,18 @@ test('get stream as an array', async t => {
 });
 
 test('get object stream as an array', async t => {
-	const fixture = [{foo: true}, {bar: false}];
-	t.deepEqual(await m.array(intoStream.obj(fixture)), fixture);
+	const result = await setup.obj.array([{foo: true}, {bar: false}]);
+	t.deepEqual(result, [{foo: true}, {bar: false}]);
 });
 
 test('get non-object stream as an array of strings', async t => {
-	const stream = intoStream(['foo', 'bar']);
-
-	const result = await m.array(stream, {encoding: 'utf8'});
+	const result = await setup.array(['foo', 'bar'], {encoding: 'utf8'});
 
 	t.deepEqual(result, ['foo', 'bar']);
 });
 
 test('get non-object stream as an array of Buffers', async t => {
-	const stream = intoStream(['foo', 'bar']);
-
-	const result = await m.array(stream, {encoding: 'buffer'});
+	const result = await setup.array(['foo', 'bar'], {encoding: 'buffer'});
 
 	t.deepEqual(result, [new Buffer('foo'), new Buffer('bar')]);
 });
