@@ -1,20 +1,19 @@
 'use strict';
 var PassThrough = require('stream').PassThrough;
 var Promise = require('pinkie-promise');
+var objectAssign = require('object-assign');
 
 function getStream(inputStream, opts) {
 	if (!inputStream) {
 		return Promise.reject(new Error('Expected a stream'));
 	}
 
-	var stream;
-	var array = opts && opts.array;
-	var encoding = opts && opts.encoding;
-	var maxBuffer = opts && opts.maxBuffer;
+	opts = objectAssign({maxBuffer: Infinity}, opts);
 
-	if (typeof maxBuffer !== 'number') {
-		maxBuffer = Infinity;
-	}
+	var stream;
+	var array = opts.array;
+	var encoding = opts.encoding;
+	var maxBuffer = opts.maxBuffer;
 
 	var buffer = encoding === 'buffer';
 	var objectMode = false;
@@ -77,16 +76,9 @@ function getStream(inputStream, opts) {
 module.exports = getStream;
 
 module.exports.buffer = function (stream, opts) {
-	return getStream(stream, {
-		encoding: 'buffer',
-		maxBuffer: opts && opts.maxBuffer
-	});
+	return getStream(stream, objectAssign({}, opts, {encoding: 'buffer'}));
 };
 
 module.exports.array = function (stream, opts) {
-	return getStream(stream, {
-		array: true,
-		encoding: opts && opts.encoding,
-		maxBuffer: opts && opts.maxBuffer
-	});
+	return getStream(stream, objectAssign({}, opts, {array: true}));
 };
