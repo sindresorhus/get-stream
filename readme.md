@@ -61,15 +61,30 @@ Default: `utf8`
 
 [Encoding](https://nodejs.org/api/buffer.html#buffer_buffer) of the incoming stream.
 
-### getStream.buffer(stream)
+##### maxBuffer
+
+Type: `number`<br>
+Default: `Infinity`
+
+Maximum length of the returned string. If it exceeds this value before the stream ends, the promise will be rejected.
+
+### getStream.buffer(stream, [options])
 
 Get the `stream` as a buffer.
 
-### getStream.array(stream)
+It honors the `maxBuffer` option as above, but it refers to byte length rather than string length.
+
+### getStream.array(stream, [options])
 
 Get the `stream` as an array of values.
 
-Especially useful for [object mode streams](https://nodesource.com/blog/understanding-object-streams/).
+It honors both the `maxBuffer` and `encoding` options. The behavior changes slightly based on the encoding chosen:
+
+- When `encoding` is unset, it assumes an [object mode stream](https://nodesource.com/blog/understanding-object-streams/) and collects values emitted from `stream` unmodified. In this case `maxBuffer` refers to the number of items in the array (not the sum of their sizes).
+
+- When `encoding` is set to `buffer`, it collects an array of buffers. `maxBuffer` refers to the summed byte lengths of every buffer in the array.
+
+- When `encoding` is set to anything else, it collects an array of strings. `maxBuffer` refers to the summed character lengths of every string in the array.
 
 
 ## FAQ
