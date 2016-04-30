@@ -35,6 +35,7 @@
     "obj"
   ],
   "dependencies": {
+    "object-assign": "^4.0.1",
     "pinkie-promise": "^2.0.0"
   },
   "devDependencies": {
