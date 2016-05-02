@@ -1,7 +1,7 @@
 'use strict';
-var PassThrough = require('stream').PassThrough;
 var Promise = require('pinkie-promise');
 var objectAssign = require('object-assign');
+var bufferStream = require('./buffer-stream');
 
 function getStream(inputStream, opts) {
 	if (!inputStream) {
@@ -9,68 +9,31 @@ function getStream(inputStream, opts) {
 	}
 
 	opts = objectAssign({maxBuffer: Infinity}, opts);
-
-	var stream;
-	var array = opts.array;
-	var encoding = opts.encoding;
 	var maxBuffer = opts.maxBuffer;
-
-	var buffer = encoding === 'buffer';
-	var objectMode = false;
-
-	if (array) {
-		objectMode = !(encoding || buffer);
-	} else {
-		encoding = encoding || 'utf8';
-	}
-
-	if (buffer) {
-		encoding = null;
-	}
-
-	var len = 0;
-	var ret = [];
+	var stream;
 	var clean;
 
 	var p = new Promise(function (resolve, reject) {
-		stream = new PassThrough({objectMode: objectMode});
+		stream = bufferStream(opts);
 		inputStream.pipe(stream);
 
-		if (encoding) {
-			stream.setEncoding(encoding);
-		}
-
-		var onData = function (chunk) {
-			ret.push(chunk);
-
-			if (objectMode) {
-				len = ret.length;
-			} else {
-				len += chunk.length;
-			}
-
-			if (len > maxBuffer) {
+		stream.on('data', function () {
+			if (stream.getBufferedLength() > maxBuffer) {
 				reject(new Error('maxBuffer exceeded'));
 			}
-		};
-
-		stream.on('data', onData);
+		});
 		stream.on('error', reject);
 		stream.on('end', resolve);
 
 		clean = function () {
-			stream.removeListener('data', onData);
+			inputStream.unpipe(stream);
 		};
 	});
 
 	p.then(clean, clean);
 
 	return p.then(function () {
-		if (array) {
-			return ret;
-		}
-
-		return buffer ? Buffer.concat(ret, len) : ret.join('');
+		return stream.getBufferedValue();
 	});
 }
 

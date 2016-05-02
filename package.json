@@ -16,7 +16,8 @@
     "test": "xo && ava"
   },
   "files": [
-    "index.js"
+    "index.js",
+    "buffer-stream.js"
   ],
   "keywords": [
     "get",
