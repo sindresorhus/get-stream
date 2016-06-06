@@ -87,6 +87,17 @@ It honors both the `maxBuffer` and `encoding` options. The behavior changes slig
 - When `encoding` is set to anything else, it collects an array of strings. `maxBuffer` refers to the summed character lengths of every string in the array.
 
 
+## Errors
+
+When input stream emits an error, promise is rejected. The data gathered up until the error is passed via `buffer` property on the error object.
+
+```js
+getStream(streamThatErrorsAtTheEnd('unicorn'))
+	.catch(err => console.log(err.buffer));
+// unicorn
+```
+
+
 ## FAQ
 
 ### How is this different from [`concat-stream`](https://github.com/maxogden/concat-stream)?

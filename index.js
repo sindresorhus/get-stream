@@ -15,7 +15,12 @@ function getStream(inputStream, opts) {
 
 	var p = new Promise(function (resolve, reject) {
 		stream = bufferStream(opts);
-		inputStream.on('error', reject);
+		inputStream.on('error', err => {
+			if (err) { // null check
+				err.buffer = stream.getBufferedValue();
+			}
+			reject(err);
+		});
 		inputStream.pipe(stream);
 
 		stream.on('data', function () {

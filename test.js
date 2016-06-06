@@ -83,10 +83,23 @@ test('maxBuffer applies to length of data when not in objectMode', t => {
 	t.notThrows(setup.array(['ab', 'cd', 'ef'], {encoding: 'buffer', maxBuffer: 6}));
 });
 
-test('Promise rejects when input stream emits an error', t => {
+test('Promise rejects when input stream emits an error', async t => {
 	const readable = new Readable();
+	const data = 'invisible pink unicorn';
+	const error = new Error('Made up error.');
+	let reads = data.match(/.{1,5}/g);
 	readable._read = function () {
-		this.emit('error', new Error('Made up error.'));
+		if (!reads.length) {
+			return setImmediate(() => this.emit('error', error));
+		}
+		this.push(reads.shift());
 	};
-	t.throws(m(readable));
+
+	try {
+		await m(readable);
+		t.fail('should throw');
+	} catch (err) {
+		t.is(err, error);
+		t.is(err.buffer, data);
+	}
 });
