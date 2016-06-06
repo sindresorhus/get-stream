@@ -15,12 +15,7 @@ function getStream(inputStream, opts) {
 
 	var p = new Promise(function (resolve, reject) {
 		stream = bufferStream(opts);
-		inputStream.on('error', err => {
-			if (err) { // null check
-				err.buffer = stream.getBufferedValue();
-			}
-			reject(err);
-		});
+		inputStream.on('error', error);
 		inputStream.pipe(stream);
 
 		stream.on('data', function () {
@@ -28,12 +23,19 @@ function getStream(inputStream, opts) {
 				reject(new Error('maxBuffer exceeded'));
 			}
 		});
-		stream.on('error', reject);
+		stream.on('error', error);
 		stream.on('end', resolve);
 
 		clean = function () {
 			inputStream.unpipe(stream);
 		};
+
+		function error(err) {
+			if (err) { // null check
+				err.buffer = stream.getBufferedValue();
+			}
+			reject(err);
+		}
 	});
 
 	p.then(clean, clean);
