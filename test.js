@@ -1,4 +1,5 @@
 import fs from 'fs';
+import {Readable} from 'stream';
 import test from 'ava';
 import bufferEquals from 'buffer-equals';
 import intoStream from 'into-stream';
@@ -80,4 +81,12 @@ test('maxBuffer applies to length of data when not in objectMode', t => {
 	t.notThrows(setup.array(['ab', 'cd', 'ef'], {encoding: 'utf8', maxBuffer: 6}));
 	t.throws(setup.array(['ab', 'cd', 'ef'], {encoding: 'buffer', maxBuffer: 5}), /maxBuffer exceeded/);
 	t.notThrows(setup.array(['ab', 'cd', 'ef'], {encoding: 'buffer', maxBuffer: 6}));
+});
+
+test('Promise rejects when input stream emits an error', t => {
+	const readable = new Readable();
+	readable._read = function () {
+		this.emit('error', new Error('Made up error.'));
+	};
+	t.throws(m(readable));
 });
