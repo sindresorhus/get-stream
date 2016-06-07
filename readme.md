@@ -89,7 +89,7 @@ It honors both the `maxBuffer` and `encoding` options. The behavior changes slig
 
 ## Errors
 
-When input stream emits an error, promise is rejected. The data gathered up until the error is passed via `buffer` property on the error object.
+If the input stream emits an `error` event, the promise will be rejected with the error. The buffered contents will be attached to the `buffer` property of the error.
 
 ```js
 getStream(streamThatErrorsAtTheEnd('unicorn'))
