@@ -27,7 +27,9 @@ function getStream(inputStream, opts) {
 		stream.on('end', resolve);
 
 		clean = function () {
-			inputStream.unpipe(stream);
+			if (inputStream.unpipe) {
+				inputStream.unpipe(stream);
+			}
 		};
 
 		function error(err) {
