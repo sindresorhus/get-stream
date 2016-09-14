@@ -27,6 +27,7 @@ function getStream(inputStream, opts) {
 		stream.on('end', resolve);
 
 		clean = function () {
+			// some streams doesn't implement the stream.Readable interface correctly
 			if (inputStream.unpipe) {
 				inputStream.unpipe(stream);
 			}
