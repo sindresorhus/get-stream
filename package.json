@@ -10,7 +10,7 @@
     "url": "sindresorhus.com"
   },
   "engines": {
-    "node": ">=0.10.0"
+    "node": ">=4"
   },
   "scripts": {
     "test": "xo && ava"
@@ -30,20 +30,19 @@
     "buffer",
     "read",
     "data",
+    "consume",
     "readable",
     "readablestream",
     "array",
     "object",
     "obj"
   ],
-  "dependencies": {
-    "object-assign": "^4.0.1",
-    "pinkie-promise": "^2.0.0"
-  },
   "devDependencies": {
     "ava": "*",
-    "buffer-equals": "^1.0.3",
-    "into-stream": "^2.0.1",
+    "into-stream": "^3.0.0",
     "xo": "*"
+  },
+  "xo": {
+    "esnext": true
   }
 }

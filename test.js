@@ -1,23 +1,13 @@
 import fs from 'fs';
 import {Readable} from 'stream';
 import test from 'ava';
-import bufferEquals from 'buffer-equals';
 import intoStream from 'into-stream';
 import m from './';
 
 function makeSetup(intoStream) {
-	function setup(streamDef, opts) {
-		return m(intoStream(streamDef), opts);
-	}
-
-	setup.array = function setup(streamDef, opts) {
-		return m.array(intoStream(streamDef), opts);
-	};
-
-	setup.buffer = function setup(streamDef, opts) {
-		return m.buffer(intoStream(streamDef), opts);
-	};
-
+	const setup = (streamDef, opts) => m(intoStream(streamDef), opts);
+	setup.array = (streamDef, opts) => m.array(intoStream(streamDef), opts);
+	setup.buffer = (streamDef, opts) => m.buffer(intoStream(streamDef), opts);
 	return setup;
 }
 
@@ -25,10 +15,7 @@ const setup = makeSetup(intoStream);
 setup.obj = makeSetup(intoStream.obj);
 
 test('get stream as a buffer', async t => {
-	t.true(
-		bufferEquals(await m.buffer(fs.createReadStream('fixture')),
-		new Buffer('unicorn\n'))
-	);
+	t.true((await m.buffer(fs.createReadStream('fixture'))).equals(new Buffer('unicorn\n')));
 });
 
 test('get stream as an array', async t => {
@@ -44,22 +31,18 @@ test('get object stream as an array', async t => {
 
 test('get non-object stream as an array of strings', async t => {
 	const result = await setup.array(['foo', 'bar'], {encoding: 'utf8'});
-
 	t.deepEqual(result, ['foo', 'bar']);
 });
 
 test('get non-object stream as an array of Buffers', async t => {
 	const result = await setup.array(['foo', 'bar'], {encoding: 'buffer'});
-
 	t.deepEqual(result, [new Buffer('foo'), new Buffer('bar')]);
 });
 
 test('getStream should not affect additional listeners attached to the stream', async t => {
 	t.plan(3);
 	const fixture = intoStream(['foo', 'bar']);
-
 	fixture.on('data', chunk => t.true(Buffer.isBuffer(chunk)));
-
 	t.is(await m(fixture), 'foobar');
 });
 
@@ -86,12 +69,17 @@ test('maxBuffer applies to length of data when not in objectMode', t => {
 test('Promise rejects when input stream emits an error', async t => {
 	const readable = new Readable();
 	const data = 'invisible pink unicorn';
-	const error = new Error('Made up error.');
-	let reads = data.match(/.{1,5}/g);
+	const error = new Error('Made up error');
+	const reads = data.match(/.{1,5}/g);
+
 	readable._read = function () {
-		if (!reads.length) {
-			return setImmediate(() => this.emit('error', error));
+		if (reads.length === 0) {
+			setImmediate(() => {
+				this.emit('error', error);
+			});
+			return;
 		}
+
 		this.push(reads.shift());
 	};
 
