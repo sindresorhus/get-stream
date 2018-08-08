@@ -25,7 +25,7 @@ function getStream(inputStream, opts) {
 		);
 		stream.on('data', () => {
 			if (stream.getBufferedLength() > maxBuffer) {
-				stream.destroy(new Error('maxBuffer exceeded'));
+				error(new Error('maxBuffer exceeded'));
 			}
 		});
 	}).then(() => stream.getBufferedValue());
