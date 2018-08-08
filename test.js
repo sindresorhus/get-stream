@@ -2,7 +2,7 @@ import fs from 'fs';
 import {Readable} from 'stream';
 import test from 'ava';
 import intoStream from 'into-stream';
-import m from './';
+import m from '.';
 
 function makeSetup(intoStream) {
 	const setup = (streamDef, opts) => m(intoStream(streamDef), opts);
@@ -15,7 +15,7 @@ const setup = makeSetup(intoStream);
 setup.obj = makeSetup(intoStream.obj);
 
 test('get stream as a buffer', async t => {
-	t.true((await m.buffer(fs.createReadStream('fixture'))).equals(new Buffer('unicorn\n')));
+	t.true((await m.buffer(fs.createReadStream('fixture'))).equals(Buffer.from('unicorn\n')));
 });
 
 test('get stream as an array', async t => {
@@ -36,7 +36,7 @@ test('get non-object stream as an array of strings', async t => {
 
 test('get non-object stream as an array of Buffers', async t => {
 	const result = await setup.array(['foo', 'bar'], {encoding: 'buffer'});
-	t.deepEqual(result, [new Buffer('foo'), new Buffer('bar')]);
+	t.deepEqual(result, [Buffer.from('foo'), Buffer.from('bar')]);
 });
 
 test('getStream should not affect additional listeners attached to the stream', async t => {
@@ -46,24 +46,24 @@ test('getStream should not affect additional listeners attached to the stream', 
 	t.is(await m(fixture), 'foobar');
 });
 
-test('maxBuffer throws when size is exceeded', t => {
-	t.throws(setup(['abcd'], {maxBuffer: 3}));
-	t.notThrows(setup(['abc'], {maxBuffer: 3}));
+test('maxBuffer throws when size is exceeded', async t => {
+	await t.throws(setup(['abcd'], {maxBuffer: 3}));
+	await t.notThrows(setup(['abc'], {maxBuffer: 3}));
 
-	t.throws(setup.buffer(['abcd'], {maxBuffer: 3}));
-	t.notThrows(setup.buffer(['abc'], {maxBuffer: 3}));
+	await t.throws(setup.buffer(['abcd'], {maxBuffer: 3}));
+	await t.notThrows(setup.buffer(['abc'], {maxBuffer: 3}));
 });
 
-test('maxBuffer applies to length of arrays when in objectMode', t => {
-	t.throws(m.array(intoStream.obj([{a: 1}, {b: 2}, {c: 3}, {d: 4}]), {maxBuffer: 3}), /maxBuffer exceeded/);
-	t.notThrows(m.array(intoStream.obj([{a: 1}, {b: 2}, {c: 3}]), {maxBuffer: 3}));
+test('maxBuffer applies to length of arrays when in objectMode', async t => {
+	await t.throws(m.array(intoStream.obj([{a: 1}, {b: 2}, {c: 3}, {d: 4}]), {maxBuffer: 3}), /maxBuffer exceeded/);
+	await t.notThrows(m.array(intoStream.obj([{a: 1}, {b: 2}, {c: 3}]), {maxBuffer: 3}));
 });
 
-test('maxBuffer applies to length of data when not in objectMode', t => {
-	t.throws(setup.array(['ab', 'cd', 'ef'], {encoding: 'utf8', maxBuffer: 5}), /maxBuffer exceeded/);
-	t.notThrows(setup.array(['ab', 'cd', 'ef'], {encoding: 'utf8', maxBuffer: 6}));
-	t.throws(setup.array(['ab', 'cd', 'ef'], {encoding: 'buffer', maxBuffer: 5}), /maxBuffer exceeded/);
-	t.notThrows(setup.array(['ab', 'cd', 'ef'], {encoding: 'buffer', maxBuffer: 6}));
+test('maxBuffer applies to length of data when not in objectMode', async t => {
+	await t.throws(setup.array(['ab', 'cd', 'ef'], {encoding: 'utf8', maxBuffer: 5}), /maxBuffer exceeded/);
+	await t.notThrows(setup.array(['ab', 'cd', 'ef'], {encoding: 'utf8', maxBuffer: 6}));
+	await t.throws(setup.array(['ab', 'cd', 'ef'], {encoding: 'buffer', maxBuffer: 5}), /maxBuffer exceeded/);
+	await t.notThrows(setup.array(['ab', 'cd', 'ef'], {encoding: 'buffer', maxBuffer: 6}));
 });
 
 test('Promise rejects when input stream emits an error', async t => {

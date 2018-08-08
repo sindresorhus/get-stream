@@ -44,5 +44,8 @@
   },
   "xo": {
     "esnext": true
+  },
+  "dependencies": {
+    "pump": "^3.0.0"
   }
 }
