@@ -1,4 +1,5 @@
 'use strict';
+const pump = require('pump');
 const bufferStream = require('./buffer-stream');
 
 function getStream(inputStream, opts) {
@@ -8,42 +9,26 @@ function getStream(inputStream, opts) {
 
 	opts = Object.assign({maxBuffer: Infinity}, opts);
 
-	const maxBuffer = opts.maxBuffer;
+	const {maxBuffer} = opts;
 	let stream;
-	let clean;
 
-	const p = new Promise((resolve, reject) => {
+	return new Promise((resolve, reject) => {
 		const error = err => {
-			if (err) { // null check
+			if (err) { // A null check
 				err.bufferedData = stream.getBufferedValue();
 			}
-
 			reject(err);
 		};
 
-		stream = bufferStream(opts);
-		inputStream.once('error', error);
-		inputStream.pipe(stream);
-
+		stream = pump(inputStream, bufferStream(opts), err =>
+			err ? error(err) : resolve()
+		);
 		stream.on('data', () => {
 			if (stream.getBufferedLength() > maxBuffer) {
-				reject(new Error('maxBuffer exceeded'));
+				error(new Error('maxBuffer exceeded'));
 			}
 		});
-		stream.once('error', error);
-		stream.on('end', resolve);
-
-		clean = () => {
-			// some streams doesn't implement the `stream.Readable` interface correctly
-			if (inputStream.unpipe) {
-				inputStream.unpipe(stream);
-			}
-		};
-	});
-
-	p.then(clean, clean);
-
-	return p.then(() => stream.getBufferedValue());
+	}).then(() => stream.getBufferedValue());
 }
 
 module.exports = getStream;
