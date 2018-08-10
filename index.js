@@ -2,35 +2,41 @@
 const pump = require('pump');
 const bufferStream = require('./buffer-stream');
 
-function getStream(inputStream, opts) {
+function getStream(inputStream, options) {
 	if (!inputStream) {
 		return Promise.reject(new Error('Expected a stream'));
 	}
 
-	opts = Object.assign({maxBuffer: Infinity}, opts);
+	options = Object.assign({maxBuffer: Infinity}, options);
 
-	const {maxBuffer} = opts;
+	const {maxBuffer} = options;
+
 	let stream;
-
 	return new Promise((resolve, reject) => {
-		const error = err => {
-			if (err) { // A null check
-				err.bufferedData = stream.getBufferedValue();
+		const rejectPromise = error => {
+			if (error) { // A null check
+				error.bufferedData = stream.getBufferedValue();
 			}
-			reject(err);
+			reject(error);
 		};
 
-		stream = pump(inputStream, bufferStream(opts), err =>
-			err ? error(err) : resolve()
-		);
+		stream = pump(inputStream, bufferStream(options), error => {
+			if (error) {
+				rejectPromise(error);
+				return;
+			}
+
+			resolve();
+		});
+
 		stream.on('data', () => {
 			if (stream.getBufferedLength() > maxBuffer) {
-				error(new Error('maxBuffer exceeded'));
+				rejectPromise(new Error('maxBuffer exceeded'));
 			}
 		});
 	}).then(() => stream.getBufferedValue());
 }
 
 module.exports = getStream;
-module.exports.buffer = (stream, opts) => getStream(stream, Object.assign({}, opts, {encoding: 'buffer'}));
-module.exports.array = (stream, opts) => getStream(stream, Object.assign({}, opts, {array: true}));
+module.exports.buffer = (stream, options) => getStream(stream, Object.assign({}, options, {encoding: 'buffer'}));
+module.exports.array = (stream, options) => getStream(stream, Object.assign({}, options, {array: true}));
