@@ -86,8 +86,8 @@ test('Promise rejects when input stream emits an error', async t => {
 	try {
 		await m(readable);
 		t.fail('should throw');
-	} catch (err) {
-		t.is(err, error);
-		t.is(err.bufferedData, data);
+	} catch (error2) {
+		t.is(error2, error);
+		t.is(error2.bufferedData, data);
 	}
 });
