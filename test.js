@@ -66,6 +66,14 @@ test('maxBuffer applies to length of data when not in objectMode', async t => {
 	await t.notThrows(setup.array(['ab', 'cd', 'ef'], {encoding: 'buffer', maxBuffer: 6}));
 });
 
+test('maxBuffer throws a MaxBufferError', async t => {
+	try {
+		await setup(['abcd'], {maxBuffer: 3});
+	} catch (error) {
+		t.true(error instanceof m.MaxBufferError);
+	}
+});
+
 test('Promise rejects when input stream emits an error', async t => {
 	const readable = new Readable();
 	const data = 'invisible pink unicorn';
