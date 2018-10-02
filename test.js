@@ -67,11 +67,7 @@ test('maxBuffer applies to length of data when not in objectMode', async t => {
 });
 
 test('maxBuffer throws a MaxBufferError', async t => {
-	try {
-		await setup(['abcd'], {maxBuffer: 3});
-	} catch (error) {
-		t.true(error instanceof m.MaxBufferError);
-	}
+	await t.throws(setup(['abcd'], {maxBuffer: 3}), m.MaxBufferError);
 });
 
 test('Promise rejects when input stream emits an error', async t => {
