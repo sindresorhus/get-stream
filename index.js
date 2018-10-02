@@ -40,7 +40,7 @@ function getStream(inputStream, options) {
 class MaxBufferError extends Error {
 	constructor() {
 		super('maxBuffer exceeded');
-		this.name = this.constructor.name;
+		this.name = 'MaxBufferError';
 	}
 }
 
