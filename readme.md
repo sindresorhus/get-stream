@@ -69,7 +69,7 @@ Default: `utf8`
 Type: `number`<br>
 Default: `Infinity`
 
-Maximum length of the returned string. If it exceeds this value before the stream ends, the promise will be rejected.
+Maximum length of the returned string. If it exceeds this value before the stream ends, the promise will be rejected with a `getStream.MaxBufferError` error.
 
 ### getStream.buffer(stream, [options])
 

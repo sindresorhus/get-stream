@@ -2,6 +2,13 @@
 const pump = require('pump');
 const bufferStream = require('./buffer-stream');
 
+class MaxBufferError extends Error {
+	constructor() {
+		super('maxBuffer exceeded');
+		this.name = 'MaxBufferError';
+	}
+}
+
 function getStream(inputStream, options) {
 	if (!inputStream) {
 		return Promise.reject(new Error('Expected a stream'));
@@ -31,7 +38,7 @@ function getStream(inputStream, options) {
 
 		stream.on('data', () => {
 			if (stream.getBufferedLength() > maxBuffer) {
-				rejectPromise(new Error('maxBuffer exceeded'));
+				rejectPromise(new MaxBufferError());
 			}
 		});
 	}).then(() => stream.getBufferedValue());
@@ -40,3 +47,4 @@ function getStream(inputStream, options) {
 module.exports = getStream;
 module.exports.buffer = (stream, options) => getStream(stream, Object.assign({}, options, {encoding: 'buffer'}));
 module.exports.array = (stream, options) => getStream(stream, Object.assign({}, options, {array: true}));
+module.exports.MaxBufferError = MaxBufferError;
