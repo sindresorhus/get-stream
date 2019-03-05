@@ -1,13 +1,13 @@
 import fs from 'fs';
-import {Readable} from 'stream';
+import {Readable as ReadableStream} from 'stream';
 import test from 'ava';
 import intoStream from 'into-stream';
-import m from '.';
+import getStream from '.';
 
 function makeSetup(intoStream) {
-	const setup = (streamDef, opts) => m(intoStream(streamDef), opts);
-	setup.array = (streamDef, opts) => m.array(intoStream(streamDef), opts);
-	setup.buffer = (streamDef, opts) => m.buffer(intoStream(streamDef), opts);
+	const setup = (streamDef, options) => getStream(intoStream(streamDef), options);
+	setup.array = (streamDef, opts) => getStream.array(intoStream(streamDef), opts);
+	setup.buffer = (streamDef, opts) => getStream.buffer(intoStream(streamDef), opts);
 	return setup;
 }
 
@@ -15,13 +15,13 @@ const setup = makeSetup(intoStream);
 setup.obj = makeSetup(intoStream.obj);
 
 test('get stream as a buffer', async t => {
-	t.true((await m.buffer(fs.createReadStream('fixture'))).equals(Buffer.from('unicorn\n')));
+	t.true((await getStream.buffer(fs.createReadStream('fixture'))).equals(Buffer.from('unicorn\n')));
 });
 
 test('get stream as an array', async t => {
 	const fixture = fs.createReadStream('index.js', 'utf8');
 	fixture.setEncoding('utf8');
-	t.is(typeof (await m.array(fixture))[0], 'string');
+	t.is(typeof (await getStream.array(fixture))[0], 'string');
 });
 
 test('get object stream as an array', async t => {
@@ -43,35 +43,35 @@ test('getStream should not affect additional listeners attached to the stream', 
 	t.plan(3);
 	const fixture = intoStream(['foo', 'bar']);
 	fixture.on('data', chunk => t.true(Buffer.isBuffer(chunk)));
-	t.is(await m(fixture), 'foobar');
+	t.is(await getStream(fixture), 'foobar');
 });
 
 test('maxBuffer throws when size is exceeded', async t => {
-	await t.throws(setup(['abcd'], {maxBuffer: 3}));
-	await t.notThrows(setup(['abc'], {maxBuffer: 3}));
+	await t.throwsAsync(setup(['abcd'], {maxBuffer: 3}));
+	await t.notThrowsAsync(setup(['abc'], {maxBuffer: 3}));
 
-	await t.throws(setup.buffer(['abcd'], {maxBuffer: 3}));
-	await t.notThrows(setup.buffer(['abc'], {maxBuffer: 3}));
+	await t.throwsAsync(setup.buffer(['abcd'], {maxBuffer: 3}));
+	await t.notThrowsAsync(setup.buffer(['abc'], {maxBuffer: 3}));
 });
 
 test('maxBuffer applies to length of arrays when in objectMode', async t => {
-	await t.throws(m.array(intoStream.obj([{a: 1}, {b: 2}, {c: 3}, {d: 4}]), {maxBuffer: 3}), /maxBuffer exceeded/);
-	await t.notThrows(m.array(intoStream.obj([{a: 1}, {b: 2}, {c: 3}]), {maxBuffer: 3}));
+	await t.throwsAsync(getStream.array(intoStream.obj([{a: 1}, {b: 2}, {c: 3}, {d: 4}]), {maxBuffer: 3}), /maxBuffer exceeded/);
+	await t.notThrowsAsync(getStream.array(intoStream.obj([{a: 1}, {b: 2}, {c: 3}]), {maxBuffer: 3}));
 });
 
 test('maxBuffer applies to length of data when not in objectMode', async t => {
-	await t.throws(setup.array(['ab', 'cd', 'ef'], {encoding: 'utf8', maxBuffer: 5}), /maxBuffer exceeded/);
-	await t.notThrows(setup.array(['ab', 'cd', 'ef'], {encoding: 'utf8', maxBuffer: 6}));
-	await t.throws(setup.array(['ab', 'cd', 'ef'], {encoding: 'buffer', maxBuffer: 5}), /maxBuffer exceeded/);
-	await t.notThrows(setup.array(['ab', 'cd', 'ef'], {encoding: 'buffer', maxBuffer: 6}));
+	await t.throwsAsync(setup.array(['ab', 'cd', 'ef'], {encoding: 'utf8', maxBuffer: 5}), /maxBuffer exceeded/);
+	await t.notThrowsAsync(setup.array(['ab', 'cd', 'ef'], {encoding: 'utf8', maxBuffer: 6}));
+	await t.throwsAsync(setup.array(['ab', 'cd', 'ef'], {encoding: 'buffer', maxBuffer: 5}), /maxBuffer exceeded/);
+	await t.notThrowsAsync(setup.array(['ab', 'cd', 'ef'], {encoding: 'buffer', maxBuffer: 6}));
 });
 
 test('maxBuffer throws a MaxBufferError', async t => {
-	await t.throws(setup(['abcd'], {maxBuffer: 3}), m.MaxBufferError);
+	await t.throwsAsync(setup(['abcd'], {maxBuffer: 3}), getStream.MaxBufferError);
 });
 
 test('Promise rejects when input stream emits an error', async t => {
-	const readable = new Readable();
+	const readable = new ReadableStream();
 	const data = 'invisible pink unicorn';
 	const error = new Error('Made up error');
 	const reads = data.match(/.{1,5}/g);
@@ -87,11 +87,7 @@ test('Promise rejects when input stream emits an error', async t => {
 		this.push(reads.shift());
 	};
 
-	try {
-		await m(readable);
-		t.fail('should throw');
-	} catch (error2) {
-		t.is(error2, error);
-		t.is(error2.bufferedData, data);
-	}
+	const error2 = await t.throwsAsync(getStream(readable));
+	t.is(error2, error);
+	t.is(error2.bufferedData, data);
 });

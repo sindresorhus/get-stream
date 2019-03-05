@@ -24,6 +24,7 @@ function getStream(inputStream, options) {
 			if (error) { // A null check
 				error.bufferedData = stream.getBufferedValue();
 			}
+
 			reject(error);
 		};
 

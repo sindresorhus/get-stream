@@ -39,8 +39,8 @@
 		"pump": "^3.0.0"
 	},
 	"devDependencies": {
-		"ava": "*",
-		"into-stream": "^3.0.0",
-		"xo": "*"
+		"ava": "^1.2.1",
+		"into-stream": "^4.0.0",
+		"xo": "^0.24.0"
 	}
 }

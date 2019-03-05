@@ -1,5 +1,5 @@
 'use strict';
-const {PassThrough} = require('stream');
+const {PassThrough: PassThroughStream} = require('stream');
 
 module.exports = options => {
 	options = Object.assign({}, options);
@@ -21,7 +21,7 @@ module.exports = options => {
 
 	let len = 0;
 	const ret = [];
-	const stream = new PassThrough({objectMode});
+	const stream = new PassThroughStream({objectMode});
 
 	if (encoding) {
 		stream.setEncoding(encoding);
