@@ -2,7 +2,7 @@
 const {PassThrough: PassThroughStream} = require('stream');
 
 module.exports = options => {
-	options = Object.assign({}, options);
+	options = {...options};
 
 	const {array} = options;
 	let {encoding} = options;
