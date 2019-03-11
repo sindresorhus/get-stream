@@ -14,7 +14,10 @@ async function getStream(inputStream, options) {
 		return Promise.reject(new Error('Expected a stream'));
 	}
 
-	options = {maxBuffer: Infinity, ...options};
+	options = {
+		maxBuffer: Infinity,
+		...options
+	};
 
 	const {maxBuffer} = options;
 
