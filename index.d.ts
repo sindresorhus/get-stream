@@ -1,5 +1,4 @@
 /// <reference types="node"/>
-
 import {Stream} from 'stream';
 
 export interface Options {
