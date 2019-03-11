@@ -9,17 +9,20 @@ class MaxBufferError extends Error {
 	}
 }
 
-function getStream(inputStream, options) {
+async function getStream(inputStream, options) {
 	if (!inputStream) {
 		return Promise.reject(new Error('Expected a stream'));
 	}
 
-	options = Object.assign({maxBuffer: Infinity}, options);
+	options = {
+		maxBuffer: Infinity,
+		...options
+	};
 
 	const {maxBuffer} = options;
 
 	let stream;
-	return new Promise((resolve, reject) => {
+	await new Promise((resolve, reject) => {
 		const rejectPromise = error => {
 			if (error) { // A null check
 				error.bufferedData = stream.getBufferedValue();
@@ -42,10 +45,13 @@ function getStream(inputStream, options) {
 				rejectPromise(new MaxBufferError());
 			}
 		});
-	}).then(() => stream.getBufferedValue());
+	});
+
+	return stream.getBufferedValue();
 }
 
 module.exports = getStream;
-module.exports.buffer = (stream, options) => getStream(stream, Object.assign({}, options, {encoding: 'buffer'}));
-module.exports.array = (stream, options) => getStream(stream, Object.assign({}, options, {array: true}));
+module.exports.default = getStream;
+module.exports.buffer = (stream, options) => getStream(stream, {...options, encoding: 'buffer'});
+module.exports.array = (stream, options) => getStream(stream, {...options, array: true});
 module.exports.MaxBufferError = MaxBufferError;
