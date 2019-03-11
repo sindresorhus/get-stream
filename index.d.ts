@@ -60,6 +60,10 @@ declare const getStream: {
 
 export default getStream;
 
+export declare const buffer: typeof getStream.buffer;
+
+export declare const array: typeof getStream.array;
+
 export class MaxBufferError extends Error {
 	readonly name: 'MaxBufferError';
 	constructor();
