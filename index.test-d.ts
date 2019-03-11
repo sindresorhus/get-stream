@@ -1,6 +1,6 @@
+import * as fs from 'fs';
 import {expectType} from 'tsd-check';
 import getStream, {MaxBufferError} from '.';
-import * as fs from 'fs';
 
 const stream = fs.createReadStream('foo');
 
