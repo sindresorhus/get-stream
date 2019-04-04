@@ -1,6 +1,7 @@
 import * as fs from 'fs';
-import {expectType} from 'tsd-check';
-import getStream, {MaxBufferError} from '.';
+import {expectType} from 'tsd';
+import getStream = require('.');
+import {MaxBufferError} from '.';
 
 const stream = fs.createReadStream('foo');
 
@@ -24,4 +25,5 @@ expectType<Promise<string[]>>(
 	getStream.array(stream, {maxBuffer: 10, encoding: 'utf8'})
 );
 
-expectType<typeof MaxBufferError>(MaxBufferError);
+const maxBufferError = new MaxBufferError();
+expectType<MaxBufferError>(maxBufferError);

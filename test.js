@@ -12,7 +12,7 @@ function makeSetup(intoStream) {
 }
 
 const setup = makeSetup(intoStream);
-setup.obj = makeSetup(intoStream.obj);
+setup.object = makeSetup(intoStream.object);
 
 test('get stream as a buffer', async t => {
 	t.true((await getStream.buffer(fs.createReadStream('fixture'))).equals(Buffer.from('unicorn\n')));
@@ -25,7 +25,7 @@ test('get stream as an array', async t => {
 });
 
 test('get object stream as an array', async t => {
-	const result = await setup.obj.array([{foo: true}, {bar: false}]);
+	const result = await setup.object.array([{foo: true}, {bar: false}]);
 	t.deepEqual(result, [{foo: true}, {bar: false}]);
 });
 
@@ -55,8 +55,8 @@ test('maxBuffer throws when size is exceeded', async t => {
 });
 
 test('maxBuffer applies to length of arrays when in objectMode', async t => {
-	await t.throwsAsync(getStream.array(intoStream.obj([{a: 1}, {b: 2}, {c: 3}, {d: 4}]), {maxBuffer: 3}), /maxBuffer exceeded/);
-	await t.notThrowsAsync(getStream.array(intoStream.obj([{a: 1}, {b: 2}, {c: 3}]), {maxBuffer: 3}));
+	await t.throwsAsync(getStream.array(intoStream.object([{a: 1}, {b: 2}, {c: 3}, {d: 4}]), {maxBuffer: 3}), /maxBuffer exceeded/);
+	await t.notThrowsAsync(getStream.array(intoStream.object([{a: 1}, {b: 2}, {c: 3}]), {maxBuffer: 3}));
 });
 
 test('maxBuffer applies to length of data when not in objectMode', async t => {
