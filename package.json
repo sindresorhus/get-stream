@@ -1,6 +1,6 @@
 {
 	"name": "get-stream",
-	"version": "5.0.0",
+	"version": "5.1.0",
 	"description": "Get a stream as a string, buffer, or array",
 	"license": "MIT",
 	"repository": "sindresorhus/get-stream",
