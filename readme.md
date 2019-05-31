@@ -49,13 +49,13 @@ const getStream = require('get-stream');
 
 The methods returns a promise that resolves when the `end` event fires on the stream, indicating that there is no more data to be read. The stream is switched to flowing mode.
 
-### getStream(stream, [options])
+### getStream(stream, options?)
 
 Get the `stream` as a string.
 
 #### options
 
-Type: `Object`
+Type: `object`
 
 ##### encoding
 
@@ -71,13 +71,13 @@ Default: `Infinity`
 
 Maximum length of the returned string. If it exceeds this value before the stream ends, the promise will be rejected with a `getStream.MaxBufferError` error.
 
-### getStream.buffer(stream, [options])
+### getStream.buffer(stream, options?)
 
 Get the `stream` as a buffer.
 
 It honors the `maxBuffer` option as above, but it refers to byte length rather than string length.
 
-### getStream.array(stream, [options])
+### getStream.array(stream, options?)
 
 Get the `stream` as an array of values.
 
@@ -118,6 +118,14 @@ This module accepts a stream instead of being one and returns a promise instead 
 - [get-stdin](https://github.com/sindresorhus/get-stdin) - Get stdin as a string or buffer
 
 
-## License
+---
 
-MIT © [Sindre Sorhus](https://sindresorhus.com)
+<div align="center">
+	<b>
+		<a href="https://tidelift.com/subscription/pkg/npm-get-stream?utm_source=npm-get-stream&utm_medium=referral&utm_campaign=readme">Get professional support for this package with a Tidelift subscription</a>
+	</b>
+	<br>
+	<sub>
+		Tidelift helps make open source sustainable for maintainers while giving companies<br>assurances about security, maintenance, and licensing for their dependencies.
+	</sub>
+</div>
