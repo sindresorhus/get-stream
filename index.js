@@ -12,7 +12,7 @@ class MaxBufferError extends Error {
 
 async function getStream(inputStream, options) {
 	if (!inputStream) {
-		return Promise.reject(new Error('Expected a stream'));
+		throw new Error('Expected a stream');
 	}
 
 	options = {
