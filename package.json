@@ -37,9 +37,7 @@
 		"array",
 		"object"
 	],
-	"dependencies": {
-		"pump": "^3.0.0"
-	},
+	"dependencies": {},
 	"devDependencies": {
 		"@types/node": "^12.0.7",
 		"ava": "^2.0.0",
