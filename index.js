@@ -1,10 +1,10 @@
 'use strict';
 const {constants: BufferConstants} = require('buffer');
-const {pipeline} = require('stream');
+const stream = require('stream');
 const {promisify} = require('util');
 const bufferStream = require('./buffer-stream');
 
-const streamPipelinePromisified = promisify(pipeline);
+const streamPipelinePromisified = promisify(stream.pipeline);
 
 class MaxBufferError extends Error {
 	constructor() {
