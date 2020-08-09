@@ -1,4 +1,5 @@
 import fs from 'fs';
+import {constants as BufferConstants} from 'buffer';
 import {Readable as ReadableStream} from 'stream';
 import test from 'ava';
 import intoStream from 'into-stream';
@@ -68,6 +69,16 @@ test('maxBuffer applies to length of data when not in objectMode', async t => {
 
 test('maxBuffer throws a MaxBufferError', async t => {
 	await t.throwsAsync(setup(['abcd'], {maxBuffer: 3}), getStream.MaxBufferError);
+});
+
+test('maxBuffer throws a MaxBufferError even if the stream is larger than Buffer MAX_LENGTH', async t => {
+	// Create a stream 1 byte larger than the maximum size a buffer is allowed to be
+	function * largeStream() {
+		yield Buffer.allocUnsafe(BufferConstants.MAX_LENGTH);
+		yield Buffer.allocUnsafe(1);
+	}
+
+	await t.throwsAsync(setup(largeStream(), {maxBuffer: BufferConstants.MAX_LENGTH, encoding: 'buffer'}), /maxBuffer exceeded/);
 });
 
 test('Promise rejects when input stream emits an error', async t => {
