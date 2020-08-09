@@ -1,14 +1,12 @@
-# get-stream [![Build Status](https://travis-ci.org/sindresorhus/get-stream.svg?branch=master)](https://travis-ci.org/sindresorhus/get-stream)
+# get-stream [![Build Status](https://travis-ci.com/sindresorhus/get-stream.svg?branch=master)](https://travis-ci.com/github/sindresorhus/get-stream)
 
 > Get a stream as a string, buffer, or array
-
 
 ## Install
 
 ```
 $ npm install get-stream
 ```
-
 
 ## Usage
 
@@ -44,7 +42,6 @@ const getStream = require('get-stream');
 })();
 ```
 
-
 ## API
 
 The methods returns a promise that resolves when the `end` event fires on the stream, indicating that there is no more data to be read. The stream is switched to flowing mode.
@@ -59,14 +56,14 @@ Type: `object`
 
 ##### encoding
 
-Type: `string`<br>
-Default: `utf8`
+Type: `string`\
+Default: `'utf8'`
 
 [Encoding](https://nodejs.org/api/buffer.html#buffer_buffer) of the incoming stream.
 
 ##### maxBuffer
 
-Type: `number`<br>
+Type: `number`\
 Default: `Infinity`
 
 Maximum length of the returned string. If it exceeds this value before the stream ends, the promise will be rejected with a `getStream.MaxBufferError` error.
@@ -89,7 +86,6 @@ It honors both the `maxBuffer` and `encoding` options. The behavior changes slig
 
 - When `encoding` is set to anything else, it collects an array of strings. `maxBuffer` refers to the summed character lengths of every string in the array.
 
-
 ## Errors
 
 If the input stream emits an `error` event, the promise will be rejected with the error. The buffered data will be attached to the `bufferedData` property of the error.
@@ -105,18 +101,15 @@ If the input stream emits an `error` event, the promise will be rejected with th
 })()
 ```
 
-
 ## FAQ
 
 ### How is this different from [`concat-stream`](https://github.com/maxogden/concat-stream)?
 
 This module accepts a stream instead of being one and returns a promise instead of using a callback. The API is simpler and it only supports returning a string, buffer, or array. It doesn't have a fragile type inference. You explicitly choose what you want. And it doesn't depend on the huge `readable-stream` package.
 
-
 ## Related
 
 - [get-stdin](https://github.com/sindresorhus/get-stdin) - Get stdin as a string or buffer
-
 
 ---
 
