@@ -7,8 +7,8 @@ import getStream from '.';
 
 function makeSetup(intoStream) {
 	const setup = (streamDef, options) => getStream(intoStream(streamDef), options);
-	setup.array = (streamDef, opts) => getStream.array(intoStream(streamDef), opts);
-	setup.buffer = (streamDef, opts) => getStream.buffer(intoStream(streamDef), opts);
+	setup.array = (streamDef, options) => getStream.array(intoStream(streamDef), options);
+	setup.buffer = (streamDef, options) => getStream.buffer(intoStream(streamDef), options);
 	return setup;
 }
 

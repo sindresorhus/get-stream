@@ -24,8 +24,8 @@ async function getStream(inputStream, options) {
 	};
 
 	const {maxBuffer} = options;
-
 	const stream = bufferStream(options);
+
 	await new Promise((resolve, reject) => {
 		const rejectPromise = error => {
 			// Don't retrieve an oversized buffer.
@@ -56,8 +56,6 @@ async function getStream(inputStream, options) {
 }
 
 module.exports = getStream;
-// TODO: Remove this for the next major release
-module.exports.default = getStream;
 module.exports.buffer = (stream, options) => getStream(stream, {...options, encoding: 'buffer'});
 module.exports.array = (stream, options) => getStream(stream, {...options, array: true});
 module.exports.MaxBufferError = MaxBufferError;
