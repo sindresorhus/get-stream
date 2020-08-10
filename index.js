@@ -36,7 +36,14 @@ async function getStream(inputStream, options) {
 			reject(error);
 		};
 
-		streamPipelinePromisified(inputStream, stream).then(resolve, rejectPromise);
+		(async () => {
+			try {
+				await streamPipelinePromisified(inputStream, stream);
+				resolve();
+			} catch (error) {
+				rejectPromise(error);
+			}
+		})();
 
 		stream.on('data', () => {
 			if (stream.getBufferedLength() > maxBuffer) {
