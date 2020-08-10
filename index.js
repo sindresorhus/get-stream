@@ -1,7 +1,10 @@
 'use strict';
 const {constants: BufferConstants} = require('buffer');
-const pump = require('pump');
+const stream = require('stream');
+const {promisify} = require('util');
 const bufferStream = require('./buffer-stream');
+
+const streamPipelinePromisified = promisify(stream.pipeline);
 
 class MaxBufferError extends Error {
 	constructor() {
@@ -12,7 +15,7 @@ class MaxBufferError extends Error {
 
 async function getStream(inputStream, options) {
 	if (!inputStream) {
-		return Promise.reject(new Error('Expected a stream'));
+		throw new Error('Expected a stream');
 	}
 
 	options = {
@@ -22,7 +25,7 @@ async function getStream(inputStream, options) {
 
 	const {maxBuffer} = options;
 
-	let stream;
+	const stream = bufferStream(options);
 	await new Promise((resolve, reject) => {
 		const rejectPromise = error => {
 			// Don't retrieve an oversized buffer.
@@ -33,14 +36,14 @@ async function getStream(inputStream, options) {
 			reject(error);
 		};
 
-		stream = pump(inputStream, bufferStream(options), error => {
-			if (error) {
+		(async () => {
+			try {
+				await streamPipelinePromisified(inputStream, stream);
+				resolve();
+			} catch (error) {
 				rejectPromise(error);
-				return;
 			}
-
-			resolve();
-		});
+		})();
 
 		stream.on('data', () => {
 			if (stream.getBufferedLength() > maxBuffer) {
