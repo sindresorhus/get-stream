@@ -11,7 +11,6 @@ expectType<Promise<string>>(getStream(stream, {encoding: 'utf8'}));
 
 expectType<Promise<Buffer>>(getStream.buffer(stream));
 expectType<Promise<Buffer>>(getStream.buffer(stream, {maxBuffer: 10}));
-expectType<Promise<Buffer>>(getStream.buffer(stream, {encoding: 'utf8'}));
 
 expectType<Promise<unknown[]>>(getStream.array(stream));
 expectType<Promise<{}[]>>(getStream.array<{}>(stream));
