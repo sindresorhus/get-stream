@@ -74,7 +74,7 @@ declare const getStream: {
 	*/
 	buffer(
 		stream: Stream,
-		options?: getStream.OptionsWithEncoding
+		options?: getStream.Options
 	): Promise<Buffer>;
 
 	/**
