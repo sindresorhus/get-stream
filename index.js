@@ -1,61 +1,64 @@
-'use strict';
-const {constants: BufferConstants} = require('buffer');
-const stream = require('stream');
-const {promisify} = require('util');
-const bufferStream = require('./buffer-stream');
+import {Buffer, constants as BufferConstants} from 'node:buffer';
+import {PassThrough as PassThroughStream} from 'node:stream';
+import {pipeline as streamPipeline} from 'node:stream/promises';
 
-const streamPipelinePromisified = promisify(stream.pipeline);
+export class MaxBufferError extends Error {
+	name = 'MaxBufferError';
 
-class MaxBufferError extends Error {
 	constructor() {
 		super('maxBuffer exceeded');
-		this.name = 'MaxBufferError';
 	}
 }
 
-async function getStream(inputStream, options) {
+export default async function getStream(inputStream, options) {
 	if (!inputStream) {
 		throw new Error('Expected a stream');
 	}
 
 	options = {
-		maxBuffer: Infinity,
-		...options
+		maxBuffer: Number.POSITIVE_INFINITY,
+		...options,
 	};
 
 	const {maxBuffer} = options;
-	const stream = bufferStream(options);
+	let {encoding = 'utf8'} = options;
+	const isBuffer = encoding === 'buffer';
 
-	await new Promise((resolve, reject) => {
-		const rejectPromise = error => {
-			// Don't retrieve an oversized buffer.
-			if (error && stream.getBufferedLength() <= BufferConstants.MAX_LENGTH) {
-				error.bufferedData = stream.getBufferedValue();
+	if (isBuffer) {
+		encoding = null;
+	}
+
+	const stream = new PassThroughStream();
+
+	if (encoding) {
+		stream.setEncoding(encoding);
+	}
+
+	await streamPipeline(inputStream, stream);
+
+	let length = 0;
+	const chunks = [];
+
+	const getBufferedValue = () => isBuffer ? Buffer.concat(chunks, length) : chunks.join('');
+
+	for await (const chunk of stream) {
+		chunks.push(chunk);
+		length += chunk.length;
+
+		if (length > maxBuffer) {
+			const error = new MaxBufferError();
+
+			if (length <= BufferConstants.MAX_LENGTH) {
+				error.bufferedData = getBufferedValue();
 			}
 
-			reject(error);
-		};
+			throw error;
+		}
+	}
 
-		(async () => {
-			try {
-				await streamPipelinePromisified(inputStream, stream);
-				resolve();
-			} catch (error) {
-				rejectPromise(error);
-			}
-		})();
-
-		stream.on('data', () => {
-			if (stream.getBufferedLength() > maxBuffer) {
-				rejectPromise(new MaxBufferError());
-			}
-		});
-	});
-
-	return stream.getBufferedValue();
+	return getBufferedValue();
 }
 
-module.exports = getStream;
-module.exports.buffer = (stream, options) => getStream(stream, {...options, encoding: 'buffer'});
-module.exports.array = (stream, options) => getStream(stream, {...options, array: true});
-module.exports.MaxBufferError = MaxBufferError;
+export async function getStreamAsBuffer(stream, options) {
+	return getStream(stream, {...options, encoding: 'buffer'});
+}
