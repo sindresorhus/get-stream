@@ -110,6 +110,7 @@ This module accepts a stream instead of being one and returns a promise instead 
 ## Related
 
 - [get-stdin](https://github.com/sindresorhus/get-stdin) - Get stdin as a string or buffer
+- [into-stream](https://github.com/sindresorhus/into-stream) - The opposite of this module
 
 ---
 
