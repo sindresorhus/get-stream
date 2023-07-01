@@ -2,6 +2,8 @@ import {Buffer, constants as BufferConstants} from 'node:buffer';
 import {PassThrough as PassThroughStream} from 'node:stream';
 import {pipeline as streamPipeline} from 'node:stream/promises';
 
+const maxHighWaterMark = 2_147_483_647;
+
 export class MaxBufferError extends Error {
 	name = 'MaxBufferError';
 
@@ -28,7 +30,7 @@ export default async function getStream(inputStream, options) {
 		encoding = null;
 	}
 
-	const stream = new PassThroughStream();
+	const stream = new PassThroughStream({highWaterMark: maxHighWaterMark});
 
 	if (encoding) {
 		stream.setEncoding(encoding);
