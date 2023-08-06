@@ -12,27 +12,17 @@ export class MaxBufferError extends Error {
 	}
 }
 
-export default async function getStream(inputStream, options) {
+export default async function getStream(inputStream, options = {}) {
 	if (!inputStream) {
 		throw new Error('Expected a stream');
 	}
 
-	options = {
-		maxBuffer: Number.POSITIVE_INFINITY,
-		...options,
-	};
-
-	const {maxBuffer} = options;
-	let {encoding = 'utf8'} = options;
+	const {maxBuffer = Number.POSITIVE_INFINITY, encoding = 'utf8'} = options;
 	const isBuffer = encoding === 'buffer';
-
-	if (isBuffer) {
-		encoding = null;
-	}
 
 	const stream = new PassThroughStream({highWaterMark: maxHighWaterMark});
 
-	if (encoding) {
+	if (!isBuffer) {
 		stream.setEncoding(encoding);
 	}
 
