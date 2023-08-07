@@ -1,6 +1,8 @@
 import fs from 'node:fs';
 import {readFile} from 'node:fs/promises';
 import {Buffer} from 'node:buffer';
+import {setTimeout} from 'node:timers/promises';
+import {compose} from 'node:stream';
 import {text, buffer} from 'node:stream/consumers';
 import test from 'ava';
 import intoStream from 'into-stream';
@@ -41,6 +43,19 @@ test('maxBuffer throws when size is exceeded', async t => {
 	await t.notThrowsAsync(setup(['abc'], {maxBuffer: 3}));
 	await t.throwsAsync(setup.buffer(['abcd'], {maxBuffer: 3}), {instanceOf: MaxBufferError});
 	await t.notThrowsAsync(setup.buffer(['abc'], {maxBuffer: 3}));
+});
+
+const infiniteIteration = async function * () {
+	while (true) {
+		// eslint-disable-next-line no-await-in-loop
+		await setTimeout(0);
+		yield '.';
+	}
+};
+
+test('handles infinite stream', async t => {
+	const stream = compose(infiniteIteration());
+	await t.throwsAsync(getStream(stream, {maxBuffer: 1}), {instanceOf: MaxBufferError});
 });
 
 test('`encoding` option sets the encoding', async t => {

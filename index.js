@@ -1,6 +1,5 @@
 import {Buffer, constants as BufferConstants} from 'node:buffer';
-import {PassThrough as PassThroughStream} from 'node:stream';
-import {pipeline as streamPipeline} from 'node:stream/promises';
+import {compose, PassThrough as PassThroughStream} from 'node:stream';
 
 const maxHighWaterMark = 2_147_483_647;
 
@@ -22,14 +21,14 @@ export default async function getStream(inputStream, options = {}) {
 
 	const stream = new PassThroughStream({highWaterMark: maxHighWaterMark, encoding: isBuffer ? undefined : encoding});
 
-	await streamPipeline(inputStream, stream);
+	const newStream = compose(inputStream, stream);
 
 	let length = 0;
 	const chunks = [];
 
 	const getBufferedValue = () => isBuffer ? Buffer.concat(chunks, length) : chunks.join('');
 
-	for await (const chunk of stream) {
+	for await (const chunk of newStream) {
 		chunks.push(chunk);
 		length += chunk.length;
 
