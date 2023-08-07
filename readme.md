@@ -97,15 +97,21 @@ try {
 
 ## Tip
 
-You may not need this package if all you need is a string:
+You may not need this package if you do not use any [options](#options).
 
 ```js
 import fs from 'node:fs';
+import {text, buffer} from 'node:stream/consumers';
 
 const stream = fs.createReadStream('unicorn.txt', {encoding: 'utf8'});
-const array = await stream.toArray();
 
-console.log(array.join(''));
+console.log(await text(stream))
+```
+
+or:
+
+```js
+console.log(await buffer(stream))
 ```
 
 ## FAQ
