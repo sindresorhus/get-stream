@@ -101,7 +101,7 @@ You may not need this package if you do not use any [options](#options).
 
 ```js
 import fs from 'node:fs';
-import {text,buffer} from 'node:stream/consumers';
+import {text, buffer} from 'node:stream/consumers';
 
 const stream = fs.createReadStream('unicorn.txt', {encoding: 'utf8'});
 
