@@ -5,7 +5,6 @@ import {setTimeout} from 'node:timers/promises';
 import {compose} from 'node:stream';
 import {text, buffer} from 'node:stream/consumers';
 import test from 'ava';
-import intoStream from 'into-stream';
 import getStream, {getStreamAsBuffer, MaxBufferError} from './index.js';
 
 const fixtureString = await readFile('fixture', 'utf8');
@@ -16,14 +15,8 @@ const shortString = 'abc';
 const longString = `${shortString}d`;
 const maxBuffer = shortString.length;
 
-function makeSetup(intoStream) {
-	const setup = (streamDef, options) => getStream(intoStream(streamDef), options);
-	setup.buffer = (streamDef, options) => getStreamAsBuffer(intoStream(streamDef), options);
-	return setup;
-}
-
-const setup = makeSetup(intoStream);
-setup.object = makeSetup(intoStream.object);
+const setup = (streamDef, options) => getStream(compose(streamDef), options);
+const setupBuffer = (streamDef, options) => getStreamAsBuffer(compose(streamDef), options);
 
 test('get stream', async t => {
 	const result = await getStream(fs.createReadStream('fixture'));
@@ -37,16 +30,16 @@ test('get stream as a buffer', async t => {
 
 test('getStream should not affect additional listeners attached to the stream', async t => {
 	t.plan(3);
-	const fixture = intoStream(['foo', 'bar']);
-	fixture.on('data', chunk => t.true(Buffer.isBuffer(chunk)));
+	const fixture = compose(['foo', 'bar']);
+	fixture.on('data', chunk => t.true(typeof chunk === 'string'));
 	t.is(await getStream(fixture), 'foobar');
 });
 
 test('maxBuffer throws when size is exceeded', async t => {
 	await t.throwsAsync(setup([longString], {maxBuffer}), {instanceOf: MaxBufferError});
 	await t.notThrowsAsync(setup([shortString], {maxBuffer}));
-	await t.throwsAsync(setup.buffer([longString], {maxBuffer}), {instanceOf: MaxBufferError});
-	await t.notThrowsAsync(setup.buffer([shortString], {maxBuffer}));
+	await t.throwsAsync(setupBuffer([longString], {maxBuffer}), {instanceOf: MaxBufferError});
+	await t.notThrowsAsync(setupBuffer([shortString], {maxBuffer}));
 });
 
 test('set error.bufferedData when `maxBuffer` is hit', async t => {
@@ -61,8 +54,7 @@ const errorStream = async function * () {
 };
 
 test('set error.bufferedData when stream errors', async t => {
-	const stream = compose(errorStream());
-	const error = await t.throwsAsync(getStream(stream));
+	const error = await t.throwsAsync(setup(errorStream()));
 	t.is(error.bufferedData, shortString);
 });
 
@@ -75,8 +67,7 @@ const infiniteIteration = async function * () {
 };
 
 test('handles infinite stream', async t => {
-	const stream = compose(infiniteIteration());
-	await t.throwsAsync(getStream(stream, {maxBuffer: 1}), {instanceOf: MaxBufferError});
+	await t.throwsAsync(setup(infiniteIteration(), {maxBuffer: 1}), {instanceOf: MaxBufferError});
 });
 
 test('`encoding` option sets the encoding', async t => {
