@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import {Buffer} from 'node:buffer';
+import {text, buffer} from 'node:stream/consumers';
 import test from 'ava';
 import intoStream from 'into-stream';
 import getStream, {getStreamAsBuffer, MaxBufferError} from './index.js';
@@ -37,8 +38,12 @@ test('maxBuffer throws when size is exceeded', async t => {
 	await t.notThrowsAsync(setup.buffer(['abc'], {maxBuffer: 3}));
 });
 
-test('native', async t => {
-	const array = await fs.createReadStream('fixture', {encoding: 'utf8'}).toArray();
-	const result = array.join('');
+test('native string', async t => {
+	const result = await text(fs.createReadStream('fixture', {encoding: 'utf8'}));
 	t.is(result, 'unicorn\n');
+});
+
+test('native buffer', async t => {
+	const result = await buffer(fs.createReadStream('fixture', {encoding: 'utf8'}));
+	t.true(result.equals(Buffer.from('unicorn\n')));
 });
