@@ -28,22 +28,24 @@ export default async function getStream(inputStream, options = {}) {
 
 	const getBufferedValue = () => isBuffer ? Buffer.concat(chunks, length) : chunks.join('');
 
-	for await (const chunk of newStream) {
-		chunks.push(chunk);
-		length += chunk.length;
+	try {
+		for await (const chunk of newStream) {
+			chunks.push(chunk);
+			length += chunk.length;
 
-		if (length > maxBuffer) {
-			const error = new MaxBufferError();
-
-			if (length <= BufferConstants.MAX_LENGTH) {
-				error.bufferedData = getBufferedValue();
+			if (length > maxBuffer) {
+				throw new MaxBufferError();
 			}
-
-			throw error;
 		}
-	}
 
-	return getBufferedValue();
+		return getBufferedValue();
+	} catch (error) {
+		if (length <= BufferConstants.MAX_LENGTH) {
+			error.bufferedData = getBufferedValue();
+		}
+
+		throw error;
+	}
 }
 
 export async function getStreamAsBuffer(stream, options) {

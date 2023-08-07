@@ -12,6 +12,10 @@ const fixtureString = await readFile('fixture', 'utf8');
 const fixtureBuffer = Buffer.from(fixtureString);
 const fixtureHex = fixtureBuffer.toString('hex');
 
+const shortString = 'abc';
+const longString = `${shortString}d`;
+const maxBuffer = shortString.length;
+
 function makeSetup(intoStream) {
 	const setup = (streamDef, options) => getStream(intoStream(streamDef), options);
 	setup.buffer = (streamDef, options) => getStreamAsBuffer(intoStream(streamDef), options);
@@ -39,10 +43,27 @@ test('getStream should not affect additional listeners attached to the stream', 
 });
 
 test('maxBuffer throws when size is exceeded', async t => {
-	await t.throwsAsync(setup(['abcd'], {maxBuffer: 3}), {instanceOf: MaxBufferError});
-	await t.notThrowsAsync(setup(['abc'], {maxBuffer: 3}));
-	await t.throwsAsync(setup.buffer(['abcd'], {maxBuffer: 3}), {instanceOf: MaxBufferError});
-	await t.notThrowsAsync(setup.buffer(['abc'], {maxBuffer: 3}));
+	await t.throwsAsync(setup([longString], {maxBuffer}), {instanceOf: MaxBufferError});
+	await t.notThrowsAsync(setup([shortString], {maxBuffer}));
+	await t.throwsAsync(setup.buffer([longString], {maxBuffer}), {instanceOf: MaxBufferError});
+	await t.notThrowsAsync(setup.buffer([shortString], {maxBuffer}));
+});
+
+test('set error.bufferedData when `maxBuffer` is hit', async t => {
+	const error = await t.throwsAsync(setup([longString], {maxBuffer}), {instanceOf: MaxBufferError});
+	t.is(error.bufferedData, longString);
+});
+
+const errorStream = async function * () {
+	yield shortString;
+	await setTimeout(0);
+	throw new Error('test');
+};
+
+test('set error.bufferedData when stream errors', async t => {
+	const stream = compose(errorStream());
+	const error = await t.throwsAsync(getStream(stream));
+	t.is(error.bufferedData, shortString);
 });
 
 const infiniteIteration = async function * () {
