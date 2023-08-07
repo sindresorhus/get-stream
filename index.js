@@ -20,11 +20,7 @@ export default async function getStream(inputStream, options = {}) {
 	const {maxBuffer = Number.POSITIVE_INFINITY, encoding = 'utf8'} = options;
 	const isBuffer = encoding === 'buffer';
 
-	const stream = new PassThroughStream({highWaterMark: maxHighWaterMark});
-
-	if (!isBuffer) {
-		stream.setEncoding(encoding);
-	}
+	const stream = new PassThroughStream({highWaterMark: maxHighWaterMark, encoding: isBuffer ? undefined : encoding});
 
 	await streamPipeline(inputStream, stream);
 
