@@ -1,9 +1,14 @@
 import fs from 'node:fs';
+import {readFile} from 'node:fs/promises';
 import {Buffer} from 'node:buffer';
 import {text, buffer} from 'node:stream/consumers';
 import test from 'ava';
 import intoStream from 'into-stream';
 import getStream, {getStreamAsBuffer, MaxBufferError} from './index.js';
+
+const fixtureString = await readFile('fixture', 'utf8');
+const fixtureBuffer = Buffer.from(fixtureString);
+const fixtureHex = fixtureBuffer.toString('hex');
 
 function makeSetup(intoStream) {
 	const setup = (streamDef, options) => getStream(intoStream(streamDef), options);
@@ -16,12 +21,12 @@ setup.object = makeSetup(intoStream.object);
 
 test('get stream', async t => {
 	const result = await getStream(fs.createReadStream('fixture'));
-	t.is(result, 'unicorn\n');
+	t.is(result, fixtureString);
 });
 
 test('get stream as a buffer', async t => {
 	const result = await getStreamAsBuffer(fs.createReadStream('fixture'));
-	t.true(result.equals(Buffer.from('unicorn\n')));
+	t.true(result.equals(fixtureBuffer));
 });
 
 test('getStream should not affect additional listeners attached to the stream', async t => {
@@ -38,12 +43,17 @@ test('maxBuffer throws when size is exceeded', async t => {
 	await t.notThrowsAsync(setup.buffer(['abc'], {maxBuffer: 3}));
 });
 
+test('`encoding` option sets the encoding', async t => {
+	const result = await getStream(fs.createReadStream('fixture'), {encoding: 'hex'});
+	t.is(result, fixtureHex);
+});
+
 test('native string', async t => {
 	const result = await text(fs.createReadStream('fixture', {encoding: 'utf8'}));
-	t.is(result, 'unicorn\n');
+	t.is(result, fixtureString);
 });
 
 test('native buffer', async t => {
 	const result = await buffer(fs.createReadStream('fixture', {encoding: 'utf8'}));
-	t.true(result.equals(Buffer.from('unicorn\n')));
+	t.true(result.equals(fixtureBuffer));
 });
