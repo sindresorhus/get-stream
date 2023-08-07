@@ -1,4 +1,4 @@
-import {Buffer} from 'node:buffer';
+import {Buffer, constants as BufferConstants} from 'node:buffer';
 import {setTimeout} from 'node:timers/promises';
 import {compose} from 'node:stream';
 import {text, buffer} from 'node:stream/consumers';
@@ -87,6 +87,28 @@ const infiniteIteration = async function * () {
 test('handles infinite stream', async t => {
 	await t.throwsAsync(setup(infiniteIteration(), {maxBuffer: 1}), {instanceOf: MaxBufferError});
 });
+
+test.serial('handles streams larger than buffer max length', async t => {
+	t.timeout(BIG_TEST_DURATION);
+	const chunkSize = 2 ** 16;
+	const chunkCount = Math.floor(BufferConstants.MAX_LENGTH / chunkSize * 2);
+	const chunk = Buffer.alloc(chunkSize);
+	const chunks = Array.from({length: chunkCount}, () => chunk);
+	await t.throwsAsync(setupBuffer(chunks));
+});
+
+test.serial('handles streams larger than string max length', async t => {
+	t.timeout(BIG_TEST_DURATION);
+	const chunkSize = 2 ** 16;
+	const chunkCount = Math.floor(BufferConstants.MAX_STRING_LENGTH / chunkSize * 2);
+	const chunk = '.'.repeat(chunkSize);
+	const chunks = Array.from({length: chunkCount}, () => chunk);
+	await t.throwsAsync(setup(chunks));
+});
+
+// Tests related to big buffers/strings can be slow. We run them serially and
+// with a higher timeout to ensure they do not randomly fail
+const BIG_TEST_DURATION = '2m';
 
 test('native string', async t => {
 	const result = await text(compose(fixtureString));
