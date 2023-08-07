@@ -19,13 +19,23 @@ function makeSetup(intoStream) {
 const setup = makeSetup(intoStream);
 setup.object = makeSetup(intoStream.object);
 
-test('get stream', async t => {
+test('get stream as utf8 from buffer', async t => {
 	const result = await getStream(fs.createReadStream('fixture'));
 	t.is(result, fixtureString);
 });
 
-test('get stream as a buffer', async t => {
+test('get stream as utf8 from utf8', async t => {
+	const result = await getStream(fs.createReadStream('fixture', 'utf8'));
+	t.is(result, fixtureString);
+});
+
+test('get stream as a buffer from buffer', async t => {
 	const result = await getStreamAsBuffer(fs.createReadStream('fixture'));
+	t.true(result.equals(fixtureBuffer));
+});
+
+test('get stream as a buffer from utf8', async t => {
+	const result = await getStreamAsBuffer(fs.createReadStream('fixture', 'utf8'));
 	t.true(result.equals(fixtureBuffer));
 });
 

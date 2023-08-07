@@ -20,9 +20,7 @@ export default async function getStream(inputStream, options = {}) {
 	const {maxBuffer = Number.POSITIVE_INFINITY, encoding = 'utf8'} = options;
 	const isBuffer = encoding === 'buffer';
 
-	const stream = new PassThroughStream({highWaterMark: maxHighWaterMark, encoding: isBuffer ? undefined : encoding});
-
-	await streamPipeline(inputStream, stream);
+	const stream = await getNewStream(inputStream, encoding, isBuffer);
 
 	let length = 0;
 	const chunks = [];
@@ -46,6 +44,21 @@ export default async function getStream(inputStream, options = {}) {
 
 	return getBufferedValue();
 }
+
+const getNewStream = async (inputStream, encoding, isBuffer) => {
+	const hasSameEncoding = (inputStream.readableEncoding ?? 'buffer') === encoding;
+
+	if (hasSameEncoding) {
+		return inputStream;
+	}
+
+	const newEncoding = isBuffer ? undefined : encoding;
+	const stream = new PassThroughStream({highWaterMark: maxHighWaterMark, encoding: newEncoding});
+
+	await streamPipeline(inputStream, stream);
+
+	return stream;
+};
 
 export async function getStreamAsBuffer(stream, options) {
 	return getStream(stream, {...options, encoding: 'buffer'});
