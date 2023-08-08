@@ -52,13 +52,6 @@ Get the given `stream` as a string.
 
 Type: `object`
 
-##### encoding
-
-Type: `string`\
-Default: `'utf8'`
-
-The [encoding](https://nodejs.org/api/buffer.html#buffers-and-character-encodings) of the incoming stream.
-
 ##### maxBuffer
 
 Type: `number`\
