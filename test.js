@@ -8,9 +8,9 @@ import getStream, {getStreamAsBuffer, MaxBufferError} from './index.js';
 const fixtureString = 'unicorn\n';
 const fixtureBuffer = Buffer.from(fixtureString);
 
-const shortString = 'abc';
-const longString = `${shortString}d`;
-const maxBuffer = shortString.length;
+const longString = `${fixtureString}..`;
+const longBuffer = Buffer.from(longString);
+const maxBuffer = fixtureString.length;
 
 const setup = (streamDef, options) => getStream(createStream(streamDef), options);
 const setupBuffer = (streamDef, options) => getStreamAsBuffer(createStream(streamDef), options);
@@ -23,20 +23,23 @@ const createStream = streamDef => {
 	return Duplex.from(generator);
 };
 
-const getStreamToUtf8 = async (t, inputStream) => {
+const getStreamToString = async (t, inputStream) => {
 	const result = await setup([inputStream]);
+	t.is(typeof result, 'string');
 	t.is(result, fixtureString);
 };
 
+test('get stream from string to string', getStreamToString, fixtureString);
+test('get stream from buffer to string', getStreamToString, fixtureBuffer);
+
 const getStreamToBuffer = async (t, inputStream) => {
 	const result = await setupBuffer([inputStream]);
+	t.true(Buffer.isBuffer(result));
 	t.true(result.equals(fixtureBuffer));
 };
 
-test('get stream from buffer to utf8', getStreamToUtf8, fixtureBuffer);
+test('get stream from string to buffer', getStreamToBuffer, fixtureString);
 test('get stream from buffer to buffer', getStreamToBuffer, fixtureBuffer);
-test('get stream from utf8 to utf8', getStreamToUtf8, fixtureString);
-test('get stream from utf8 to buffer', getStreamToBuffer, fixtureString);
 
 const multiByteString = 'a\u1000';
 const multiByteUint8Array = new TextEncoder().encode(multiByteString);
@@ -65,12 +68,13 @@ test('getStream should not affect additional listeners attached to the stream', 
 	t.is(await getStream(fixture), 'foobar');
 });
 
-test('maxBuffer throws when size is exceeded', async t => {
-	await t.throwsAsync(setup([longString], {maxBuffer}), {instanceOf: MaxBufferError});
-	await t.notThrowsAsync(setup([shortString], {maxBuffer}));
-	await t.throwsAsync(setupBuffer([longString], {maxBuffer}), {instanceOf: MaxBufferError});
-	await t.notThrowsAsync(setupBuffer([shortString], {maxBuffer}));
-});
+const checkMaxBuffer = async (t, setupFunction, longValue, shortValue) => {
+	await t.throwsAsync(setupFunction([longValue], {maxBuffer}), {instanceOf: MaxBufferError});
+	await t.notThrowsAsync(setupFunction([shortValue], {maxBuffer}));
+};
+
+test('maxBuffer throws when size is exceeded with a string', checkMaxBuffer, setup, longString, fixtureString);
+test('maxBuffer throws when size is exceeded with a buffer', checkMaxBuffer, setupBuffer, longBuffer, fixtureBuffer);
 
 test('set error.bufferedData when `maxBuffer` is hit', async t => {
 	const error = await t.throwsAsync(setup([longString], {maxBuffer}), {instanceOf: MaxBufferError});
@@ -78,14 +82,14 @@ test('set error.bufferedData when `maxBuffer` is hit', async t => {
 });
 
 const errorStream = async function * () {
-	yield shortString;
+	yield fixtureString;
 	await setTimeout(0);
 	throw new Error('test');
 };
 
 test('set error.bufferedData when stream errors', async t => {
 	const error = await t.throwsAsync(setup(errorStream));
-	t.is(error.bufferedData, shortString);
+	t.is(error.bufferedData, fixtureString);
 });
 
 const infiniteIteration = async function * () {
