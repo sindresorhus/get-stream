@@ -2,6 +2,12 @@
 
 > Get a stream as a string or buffer
 
+## Features
+
+- Supports both [text streams](#get-stream) and [binary streams](#getstreamasbufferstream-options).
+- Can set a [maximum stream size](#maxbuffer).
+- Returns [partially read data](#errors) when the stream errors.
+
 ## Install
 
 ```sh
@@ -42,11 +48,25 @@ console.log(await getStream(stream));
 
 ## API
 
-The methods returns a promise that resolves when the `end` event fires on the stream, indicating that there is no more data to be read. The stream is switched to flowing mode.
+The following methods read the stream's contents and return it as a promise.
 
 ### getStream(stream, options?)
 
+`stream`: [`stream.Readable`](https://nodejs.org/api/stream.html#class-streamreadable)
+`options`: [`Options`](#options)
+
 Get the given `stream` as a string.
+
+### getStreamAsBuffer(stream, options?)
+
+Get the given `stream` as a buffer.
+
+```js
+import {getStreamAsBuffer} from 'get-stream';
+
+const stream = fs.createReadStream('unicorn.png');
+console.log(await getStreamAsBuffer(stream));
+```
 
 #### options
 
@@ -57,25 +77,11 @@ Type: `object`
 Type: `number`\
 Default: `Infinity`
 
-Maximum length of the returned string. If it exceeds this value before the stream ends, the promise will be rejected with a `MaxBufferError` error.
-
-### getStreamAsBuffer(stream, options?)
-
-Get the given `stream` as a buffer.
-
-It honors the `maxBuffer` option as above, but it refers to byte length rather than string length.
-
-```js
-import {getStreamAsBuffer} from 'get-stream';
-
-const stream = fs.createReadStream('unicorn.png');
-
-console.log(await getStreamAsBuffer(stream));
-```
+Maximum length of the stream. If exceeded, the promise will be rejected with a `MaxBufferError`.
 
 ## Errors
 
-If the input stream emits an `error` event, the promise will be rejected with the error. The buffered data will be attached to the `bufferedData` property of the error.
+If the stream errors, the returned promise will be rejected with the `error`. Any contents already read from the stream will be set to `error.bufferedData`, which is a `string` or a `Buffer` depending on the [method used](#api).
 
 ```js
 import getStream from 'get-stream';
@@ -90,14 +96,13 @@ try {
 
 ## Tip
 
-You may not need this package if you do not use any [options](#options).
+If you do not need [`maxBuffer`](#maxbuffer) nor [`error.bufferedData`](#errors), you can use [`node:stream/consumers`](https://nodejs.org/api/webstreams.html#utility-consumers) instead of this package.
 
 ```js
 import fs from 'node:fs';
 import {text, buffer} from 'node:stream/consumers';
 
 const stream = fs.createReadStream('unicorn.txt', {encoding: 'utf8'});
-
 console.log(await text(stream))
 ```
 
