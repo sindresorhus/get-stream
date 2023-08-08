@@ -37,15 +37,34 @@ const getStreamContents = async (stream, {convertChunk, getContents}, {maxBuffer
 
 		return getContents(chunks, length);
 	} catch (error) {
-		try {
-			error.bufferedData = getContents(chunks, length);
-			// This throws when the buffered data is larger than the maximum length
-			// for a string or buffer
-		} catch {}
-
+		error.bufferedData = getBufferedData(chunks, getContents, length);
 		throw error;
 	}
 };
+
+const getBufferedData = (chunks, getContents, length) => {
+	try {
+		return getContents(chunks, length);
+	} catch {
+		return truncateBufferedValue(chunks, getContents);
+	}
+};
+
+// If the input is larger than the maximum length for a string or a buffer,
+// it will fail. We retry it with increasingly smaller inputs, so that
+// `error.bufferedData` is still set, albeit with a truncated value, since that
+// is still useful for debugging.
+const truncateBufferedValue = (chunks, getContents) => {
+	let chunksCount = chunks.length;
+	do {
+		chunksCount = Math.floor(chunksCount / SPLIT_FACTOR);
+		try {
+			return getContents(chunks.slice(0, chunksCount));
+		} catch {}
+	} while (chunksCount > 0);
+};
+
+const SPLIT_FACTOR = 2;
 
 const convertChunkToBuffer = chunk => Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
 

@@ -78,7 +78,8 @@ test.serial('handles streams larger than buffer max length', async t => {
 	const chunkCount = Math.floor(BufferConstants.MAX_LENGTH / chunkSize * 2);
 	const chunk = Buffer.alloc(chunkSize);
 	const chunks = Array.from({length: chunkCount}, () => chunk);
-	await t.throwsAsync(setupBuffer(chunks));
+	const {bufferedData} = await t.throwsAsync(setupBuffer(chunks));
+	t.is(bufferedData[0], 0);
 });
 
 test.serial('handles streams larger than string max length', async t => {
@@ -87,7 +88,8 @@ test.serial('handles streams larger than string max length', async t => {
 	const chunkCount = Math.floor(BufferConstants.MAX_STRING_LENGTH / chunkSize * 2);
 	const chunk = '.'.repeat(chunkSize);
 	const chunks = Array.from({length: chunkCount}, () => chunk);
-	await t.throwsAsync(setup(chunks));
+	const {bufferedData} = await t.throwsAsync(setup(chunks));
+	t.is(bufferedData[0], '.');
 });
 
 // Tests related to big buffers/strings can be slow. We run them serially and
