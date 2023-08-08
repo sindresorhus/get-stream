@@ -7,8 +7,6 @@ import getStream, {getStreamAsBuffer, MaxBufferError} from './index.js';
 
 const fixtureString = 'unicorn\n';
 const fixtureBuffer = Buffer.from(fixtureString);
-const fixtureHex = fixtureBuffer.toString('hex');
-const fixtureBase64Url = fixtureBuffer.toString('base64url');
 
 const shortString = 'abc';
 const longString = `${shortString}d`;
@@ -27,24 +25,10 @@ const getStreamToBuffer = async (t, inputStream) => {
 	t.true(result.equals(fixtureBuffer));
 };
 
-const getStreamToHex = async (t, inputStream) => {
-	const result = await setup(inputStream, {encoding: 'hex'});
-	t.is(result, fixtureHex);
-};
-
-const getStreamToBase64Url = async (t, inputStream) => {
-	const result = await setup(inputStream, {encoding: 'base64Url'});
-	t.is(result, fixtureBase64Url);
-};
-
 test('get stream from buffer to utf8', getStreamToUtf8, fixtureBuffer);
 test('get stream from buffer to buffer', getStreamToBuffer, fixtureBuffer);
-test('get stream from buffer to hex', getStreamToHex, fixtureBuffer);
-test('get stream from buffer to base64url', getStreamToBase64Url, fixtureBuffer);
 test('get stream from utf8 to utf8', getStreamToUtf8, fixtureString);
 test('get stream from utf8 to buffer', getStreamToBuffer, fixtureString);
-test('get stream from utf8 to hex', getStreamToHex, fixtureString);
-test('get stream from utf8 to base64url', getStreamToBase64Url, fixtureString);
 
 test('getStream should not affect additional listeners attached to the stream', async t => {
 	t.plan(3);

@@ -8,7 +8,6 @@ const stream = fs.createReadStream('foo') as Stream;
 
 expectType<Promise<string>>(getStream(stream));
 expectType<Promise<string>>(getStream(stream, {maxBuffer: 10}));
-expectType<Promise<string>>(getStream(stream, {encoding: 'utf8'}));
 
 expectType<Promise<Buffer>>(getStreamAsBuffer(stream));
 expectType<Promise<Buffer>>(getStreamAsBuffer(stream, {maxBuffer: 10}));

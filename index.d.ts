@@ -15,15 +15,6 @@ export type Options = {
 	readonly maxBuffer?: number;
 };
 
-export type OptionsWithEncoding<EncodingType = BufferEncoding> = {
-	/**
-	The [encoding](https://nodejs.org/api/buffer.html#buffers-and-character-encodings) of the incoming stream.
-
-	@default 'utf8'
-	*/
-	readonly encoding?: EncodingType;
-} & Options;
-
 /**
 Get the given `stream` as a string.
 
@@ -58,7 +49,7 @@ console.log(await getStream(stream));
 //                                     ~~
 ```
 */
-export default function getStream(stream: Stream, options?: OptionsWithEncoding): Promise<string>;
+export default function getStream(stream: Stream, options?: Options): Promise<string>;
 
 /**
 Get the given `stream` as a buffer.
