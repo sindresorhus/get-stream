@@ -1,4 +1,4 @@
-import {type Stream} from 'node:stream';
+import {type Readable} from 'node:stream';
 import {type Buffer} from 'node:buffer';
 
 export class MaxBufferError extends Error {
@@ -49,7 +49,7 @@ console.log(await getStream(stream));
 //                                     ~~
 ```
 */
-export default function getStream(stream: Stream, options?: Options): Promise<string>;
+export default function getStream(stream: Readable, options?: Options): Promise<string>;
 
 /**
 Get the given `stream` as a buffer.
@@ -65,4 +65,4 @@ const stream = fs.createReadStream('unicorn.png');
 console.log(await getStreamAsBuffer(stream));
 ```
 */
-export function getStreamAsBuffer(stream: Stream, options?: Options): Promise<Buffer>;
+export function getStreamAsBuffer(stream: Readable, options?: Options): Promise<Buffer>;
