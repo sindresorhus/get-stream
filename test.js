@@ -96,6 +96,12 @@ test.serial('handles streams larger than string max length', async t => {
 // with a higher timeout to ensure they do not randomly fail
 const BIG_TEST_DURATION = '2m';
 
+test('handles streams with a single chunk larger than string max length', async t => {
+	const chunks = [Buffer.alloc(BufferConstants.MAX_STRING_LENGTH + 1)];
+	const {bufferedData} = await t.throwsAsync(setup(chunks));
+	t.is(bufferedData, '');
+});
+
 test('native string', async t => {
 	const result = await text(compose(fixtureString));
 	t.is(result, fixtureString);
