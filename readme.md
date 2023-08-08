@@ -4,6 +4,7 @@
 
 ## Features
 
+- Works in any JavaScript environment ([Node.js](#nodejs-streams), [browsers](#web-streams), etc.).
 - Supports both [text streams](#get-stream) and [binary streams](#getstreamasbufferstream-options).
 - Can set a [maximum stream size](#maxbuffer).
 - Returns [partially read data](#errors) when the stream errors.
@@ -116,7 +117,7 @@ try {
 
 ## Tip
 
-If you do not need [`maxBuffer`](#maxbuffer) nor [`error.bufferedData`](#errors), you can use [`node:stream/consumers`](https://nodejs.org/api/webstreams.html#utility-consumers) instead of this package.
+If you do not need [`maxBuffer`](#maxbuffer), [`error.bufferedData`](#errors) nor browser support, you can use [`node:stream/consumers`](https://nodejs.org/api/webstreams.html#utility-consumers) instead of this package.
 
 ```js
 import fs from 'node:fs';
