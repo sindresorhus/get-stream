@@ -16,6 +16,8 @@ npm install get-stream
 
 ## Usage
 
+### Node.js streams
+
 ```js
 import fs from 'node:fs';
 import getStream from 'get-stream';
@@ -46,13 +48,20 @@ console.log(await getStream(stream));
 */
 ```
 
+### Web streams
+
+```js
+const {body: readableStream} = await fetch('https://example.com');
+console.log(await getStream(readableStream));
+```
+
 ## API
 
 The following methods read the stream's contents and return it as a promise.
 
 ### getStream(stream, options?)
 
-`stream`: [`stream.Readable`](https://nodejs.org/api/stream.html#class-streamreadable)
+`stream`: [`stream.Readable`](https://nodejs.org/api/stream.html#class-streamreadable), [`ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream), or [`AsyncIterable<string | Buffer | ArrayBuffer | DataView | TypedArray>`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#the_async_iterator_and_async_iterable_protocols)\
 `options`: [`Options`](#options)
 
 Get the given `stream` as a string.
