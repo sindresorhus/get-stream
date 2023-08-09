@@ -1,9 +1,9 @@
 import {Buffer} from 'node:buffer';
 import {open} from 'node:fs/promises';
-import {type Readable, Duplex} from 'node:stream';
+import {type Readable} from 'node:stream';
 import fs from 'node:fs';
-import {expectType, expectError} from 'tsd';
-import getStream, {getStreamAsBuffer, getStreamAsArrayBuffer, MaxBufferError} from './index.js';
+import {expectType, expectError, expectAssignable, expectNotAssignable} from 'tsd';
+import getStream, {getStreamAsBuffer, getStreamAsArrayBuffer, MaxBufferError, type Options, type AnyStream} from './index.js';
 
 const nodeStream = fs.createReadStream('foo') as Readable;
 
@@ -61,5 +61,18 @@ expectError(await getStreamAsArrayBuffer({}));
 expectError(await getStreamAsArrayBuffer(nodeStream, {maxBuffer: '10'}));
 expectError(await getStreamAsArrayBuffer(nodeStream, {unknownOption: 10}));
 expectError(await getStreamAsArrayBuffer(nodeStream, {maxBuffer: 10}, {}));
+
+expectAssignable<AnyStream>(nodeStream);
+expectAssignable<AnyStream>(readableStream);
+expectAssignable<AnyStream>(stringAsyncIterable);
+expectAssignable<AnyStream>(bufferAsyncIterable);
+expectAssignable<AnyStream>(arrayBufferAsyncIterable);
+expectAssignable<AnyStream>(dataViewAsyncIterable);
+expectAssignable<AnyStream>(typedArrayAsyncIterable);
+expectNotAssignable<AnyStream>({});
+
+expectAssignable<Options>({maxBuffer: 10});
+expectNotAssignable<Options>({maxBuffer: '10'});
+expectNotAssignable<Options>({unknownOption: 10});
 
 expectType<MaxBufferError>(new MaxBufferError());

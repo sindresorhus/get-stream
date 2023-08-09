@@ -7,7 +7,7 @@ export class MaxBufferError extends Error {
 }
 
 type StreamItem = string | Buffer | ArrayBuffer | ArrayBufferView;
-type AnyStream = Readable | ReadableStream<StreamItem> | AsyncIterable<StreamItem>;
+export type AnyStream = Readable | ReadableStream<StreamItem> | AsyncIterable<StreamItem>;
 
 export type Options = {
 	/**
