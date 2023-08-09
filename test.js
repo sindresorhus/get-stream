@@ -102,6 +102,15 @@ test('handles streams with a single chunk larger than string max length', async 
 	t.is(bufferedData, '');
 });
 
+const firstArgumentCheck = async (t, firstArgument) => {
+	await t.throwsAsync(getStream(firstArgument), {message: /first argument/});
+};
+
+test('Throws if the first argument is undefined', firstArgumentCheck, undefined);
+test('Throws if the first argument is null', firstArgumentCheck, null);
+test('Throws if the first argument is a string', firstArgumentCheck, '');
+test('Throws if the first argument is an array', firstArgumentCheck, []);
+
 test('native string', async t => {
 	const result = await text(compose(fixtureString));
 	t.is(result, fixtureString);
