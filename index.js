@@ -1,5 +1,3 @@
-import {Buffer} from 'node:buffer';
-
 export class MaxBufferError extends Error {
 	name = 'MaxBufferError';
 
@@ -9,6 +7,10 @@ export class MaxBufferError extends Error {
 }
 
 export async function getStreamAsBuffer(stream, options) {
+	if (!('Buffer' in globalThis)) {
+		throw new Error('getStreamAsBuffer() is only supported in Node.js');
+	}
+
 	return getStreamContents(stream, chunkTypes.buffer, options);
 }
 
@@ -61,7 +63,8 @@ const getChunkType = chunk => {
 		return 'others';
 	}
 
-	if (Buffer.isBuffer(chunk)) {
+	// eslint-disable-next-line n/prefer-global/buffer
+	if (globalThis.Buffer?.isBuffer(chunk)) {
 		return 'buffer';
 	}
 
@@ -118,11 +121,14 @@ const throwObjectStream = chunk => {
 	throw new Error(`Streams in object mode are not supported: ${String(chunk)}`);
 };
 
-const useBufferFrom = chunk => Buffer.from(chunk);
+// eslint-disable-next-line n/prefer-global/buffer
+const useBufferFrom = chunk => globalThis.Buffer.from(chunk);
 
-const useBufferFromWithOffset = chunk => Buffer.from(chunk.buffer, chunk.byteOffset, chunk.byteLength);
+// eslint-disable-next-line n/prefer-global/buffer
+const useBufferFromWithOffset = chunk => globalThis.Buffer.from(chunk.buffer, chunk.byteOffset, chunk.byteLength);
 
-const getContentsAsBuffer = (chunks, textDecoder, length) => Buffer.concat(chunks, length);
+// eslint-disable-next-line n/prefer-global/buffer
+const getContentsAsBuffer = (chunks, textDecoder, length) => globalThis.Buffer.concat(chunks, length);
 
 const useTextEncoder = chunk => textEncoder.encode(chunk);
 const textEncoder = new TextEncoder();
