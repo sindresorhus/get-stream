@@ -12,6 +12,10 @@ export async function getStreamAsBuffer(stream, options) {
 	return getStreamContents(stream, chunkTypes.buffer, options);
 }
 
+export async function getStreamAsArrayBuffer(stream, options) {
+	return getStreamContents(stream, chunkTypes.arrayBuffer, options);
+}
+
 export default async function getStream(stream, options) {
 	return getStreamContents(stream, chunkTypes.string, options);
 }
@@ -118,6 +122,25 @@ const useBufferFromWithOffset = chunk => Buffer.from(chunk.buffer, chunk.byteOff
 
 const getContentsAsBuffer = (chunks, textDecoder, length) => Buffer.concat(chunks, length);
 
+const useTextEncoder = chunk => textEncoder.encode(chunk);
+const textEncoder = new TextEncoder();
+
+const useUint8Array = chunk => new Uint8Array(chunk);
+
+const useUint8ArrayWithOffset = chunk => new Uint8Array(chunk.buffer, chunk.byteOffset, chunk.byteLength);
+
+const getContentsAsArrayBuffer = (chunks, textDecoder, length) => {
+	const contents = new Uint8Array(length);
+
+	let offset = 0;
+	for (const chunk of chunks) {
+		contents.set(chunk, offset);
+		offset += chunk.length;
+	}
+
+	return contents.buffer;
+};
+
 const useTextDecoder = (chunk, textDecoder) => textDecoder.decode(chunk, {stream: true});
 
 const getContentsAsString = (chunks, textDecoder) => `${chunks.join('')}${textDecoder.decode()}`;
@@ -133,6 +156,17 @@ const chunkTypes = {
 			others: throwObjectStream,
 		},
 		getContents: getContentsAsBuffer,
+	},
+	arrayBuffer: {
+		convertChunk: {
+			string: useTextEncoder,
+			buffer: useUint8Array,
+			arrayBuffer: useUint8Array,
+			dataView: useUint8ArrayWithOffset,
+			typedArray: useUint8ArrayWithOffset,
+			others: throwObjectStream,
+		},
+		getContents: getContentsAsArrayBuffer,
 	},
 	string: {
 		convertChunk: {

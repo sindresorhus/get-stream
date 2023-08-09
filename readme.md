@@ -1,6 +1,6 @@
 # get-stream
 
-> Get a stream as a string or buffer
+> Get a stream as a string, Buffer or ArrayBuffer
 
 ## Features
 
@@ -59,13 +59,24 @@ Get the given `stream` as a string.
 
 ### getStreamAsBuffer(stream, options?)
 
-Get the given `stream` as a buffer.
+Get the given `stream` as a Node.js [`Buffer`](https://nodejs.org/api/buffer.html#class-buffer).
 
 ```js
 import {getStreamAsBuffer} from 'get-stream';
 
 const stream = fs.createReadStream('unicorn.png');
 console.log(await getStreamAsBuffer(stream));
+```
+
+### getStreamAsArrayBuffer(stream, options?)
+
+Get the given `stream` as an [`ArrayBuffer`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer).
+
+```js
+import {getStreamAsArrayBuffer} from 'get-stream';
+
+const {body: readableStream} = await fetch('https://example.com');
+console.log(await getStreamAsArrayBuffer(readableStream));
 ```
 
 #### options
@@ -81,7 +92,7 @@ Maximum length of the stream. If exceeded, the promise will be rejected with a `
 
 ## Errors
 
-If the stream errors, the returned promise will be rejected with the `error`. Any contents already read from the stream will be set to `error.bufferedData`, which is a `string` or a `Buffer` depending on the [method used](#api).
+If the stream errors, the returned promise will be rejected with the `error`. Any contents already read from the stream will be set to `error.bufferedData`, which is a `string`, a `Buffer` or an `ArrayBuffer` depending on the [method used](#api).
 
 ```js
 import getStream from 'get-stream';
@@ -100,7 +111,7 @@ If you do not need [`maxBuffer`](#maxbuffer) nor [`error.bufferedData`](#errors)
 
 ```js
 import fs from 'node:fs';
-import {text, buffer} from 'node:stream/consumers';
+import {text, buffer, arrayBuffer} from 'node:stream/consumers';
 
 const stream = fs.createReadStream('unicorn.txt', {encoding: 'utf8'});
 console.log(await text(stream))
@@ -112,11 +123,17 @@ or:
 console.log(await buffer(stream))
 ```
 
+or:
+
+```js
+console.log(await arrayBuffer(stream))
+```
+
 ## FAQ
 
 ### How is this different from [`concat-stream`](https://github.com/maxogden/concat-stream)?
 
-This module accepts a stream instead of being one and returns a promise instead of using a callback. The API is simpler and it only supports returning a string or buffer. It doesn't have a fragile type inference. You explicitly choose what you want. And it doesn't depend on the huge `readable-stream` package.
+This module accepts a stream instead of being one and returns a promise instead of using a callback. The API is simpler and it only supports returning a string, `Buffer` or an `ArrayBuffer`. It doesn't have a fragile type inference. You explicitly choose what you want. And it doesn't depend on the huge `readable-stream` package.
 
 ## Related
 
