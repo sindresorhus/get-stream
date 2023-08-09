@@ -51,11 +51,13 @@ const getStreamContents = async (stream, {convertChunk, getContents}, {maxBuffer
 const isAsyncIterable = stream => typeof stream === 'object' && stream !== null && typeof stream[Symbol.asyncIterator] === 'function';
 
 const getChunkType = chunk => {
-	if (typeof chunk === 'string') {
+	const typeOfChunk = typeof chunk;
+
+	if (typeOfChunk === 'string') {
 		return 'string';
 	}
 
-	if (typeof chunk !== 'object' || chunk === null) {
+	if (typeOfChunk !== 'object' || chunk === null) {
 		return 'others';
 	}
 
