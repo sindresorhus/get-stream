@@ -22,7 +22,7 @@ export default async function getStream(stream, options) {
 
 const getStreamContents = async (stream, {convertChunk, getContents}, {maxBuffer = Number.POSITIVE_INFINITY} = {}) => {
 	if (!isAsyncIterable(stream)) {
-		throw new Error('The first argument must be a Readable, a ReadableStream or an async iterable.');
+		throw new Error('The first argument must be a Readable, a ReadableStream, or an async iterable.');
 	}
 
 	let length = 0;
