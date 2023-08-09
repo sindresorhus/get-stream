@@ -6,6 +6,9 @@ export class MaxBufferError extends Error {
 	constructor();
 }
 
+type StreamItem = string | Buffer | ArrayBuffer | ArrayBufferView;
+type AnyStream = Readable | ReadableStream<StreamItem> | AsyncIterable<StreamItem>;
+
 export type Options = {
 	/**
 	Maximum length of the stream. If exceeded, the promise will be rejected with a `MaxBufferError`.
@@ -49,7 +52,7 @@ console.log(await getStream(stream));
 //                                     ~~
 ```
 */
-export default function getStream(stream: Readable, options?: Options): Promise<string>;
+export default function getStream(stream: AnyStream, options?: Options): Promise<string>;
 
 /**
 Get the given `stream` as a Node.js [`Buffer`](https://nodejs.org/api/buffer.html#class-buffer).
@@ -64,7 +67,7 @@ const stream = fs.createReadStream('unicorn.png');
 console.log(await getStreamAsBuffer(stream));
 ```
 */
-export function getStreamAsBuffer(stream: Readable, options?: Options): Promise<Buffer>;
+export function getStreamAsBuffer(stream: AnyStream, options?: Options): Promise<Buffer>;
 
 /**
 Get the given `stream` as an [`ArrayBuffer`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer).
@@ -79,4 +82,4 @@ const {body: readableStream} = await fetch('https://example.com');
 console.log(await getStreamAsArrayBuffer(readableStream));
 ```
 */
-export function getStreamAsArrayBuffer(stream: Readable, options?: Options): Promise<ArrayBuffer>;
+export function getStreamAsArrayBuffer(stream: AnyStream, options?: Options): Promise<ArrayBuffer>;

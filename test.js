@@ -2,6 +2,7 @@ import {Buffer, constants as BufferConstants} from 'node:buffer';
 import {setTimeout} from 'node:timers/promises';
 import {spawn} from 'node:child_process';
 import {createReadStream} from 'node:fs';
+import {open} from 'node:fs/promises';
 import {version as nodeVersion} from 'node:process';
 import {Duplex} from 'node:stream';
 import {text, buffer} from 'node:stream/consumers';
@@ -30,6 +31,8 @@ const longUint16Array = new Uint16Array(longArrayBuffer);
 const longDataView = new DataView(longArrayBuffer);
 const maxBuffer = fixtureString.length;
 
+const TEST_URL = 'https://nodejs.org/dist/index.json';
+
 const setup = (streamDef, options) => getStream(createStream(streamDef), options);
 const setupBuffer = (streamDef, options) => getStreamAsBuffer(createStream(streamDef), options);
 const setupArrayBuffer = (streamDef, options) => getStreamAsArrayBuffer(createStream(streamDef), options);
@@ -41,6 +44,8 @@ const createStream = streamDef => {
 
 	return Duplex.from(generator);
 };
+
+const createReadableStream = streamDef => Duplex.toWeb(Duplex.from(streamDef)).readable;
 
 const getStreamToString = async (t, inputStream) => {
 	const result = await setup([inputStream]);
@@ -115,6 +120,11 @@ test('get stream from undefined to arrayBuffer', throwOnInvalidChunkType, setupA
 test('get stream from symbol to string', throwOnInvalidChunkType, setup, Symbol('test'));
 test('get stream from symbol to buffer', throwOnInvalidChunkType, setupBuffer, Symbol('test'));
 test('get stream from symbol to arrayBuffer', throwOnInvalidChunkType, setupArrayBuffer, Symbol('test'));
+
+test('get stream with mixed chunk types', async t => {
+	const result = await setup([fixtureString, fixtureBuffer, fixtureArrayBuffer, fixtureTypedArray, fixtureUint16Array, fixtureDataView]);
+	t.is(result, fixtureString.repeat(6));
+});
 
 const multiByteString = 'a\u1000';
 const multiByteUint8Array = new TextEncoder().encode(multiByteString);
@@ -237,6 +247,43 @@ test('works with child_process.spawn()', async t => {
 	const result = await getStream(stdout);
 	t.is(result.trim(), nodeVersion);
 });
+
+// @todo: remove this condition after dropping support for Node 16.
+// `ReadableStream` was added in Node 16.5.0.
+// `Duplex.toWeb()` and `fileHandle.readableWebStream` were added in Node 17.0.0.
+// `fetch()` without an experimental flag was added in Node 18.0.0.
+// However, `get-stream`'s implementation does not refer to any of those
+// variables and functions. Instead, it only supports specific chunk types
+// (`TypedArray`, `DataView`, `ArrayBuffer`) for any async iterable.
+// Doing so automatically works with `ReadableStream`s, regardless of whether
+// the environment supports them.
+if (!nodeVersion.startsWith('v16.')) {
+	test('works with ReadableStream', async t => {
+		const result = await getStream(createReadableStream(fixtureString));
+		t.is(result, fixtureString);
+	});
+
+	const readableWebStream = async (t, type) => {
+		const fileHandle = await open('fixture');
+
+		try {
+			const result = await getStream(fileHandle.readableWebStream({type}));
+			t.is(result, fixtureString);
+		} finally {
+			await fileHandle.close();
+		}
+	};
+
+	test('works with readableWebStream({ type: undefined })', readableWebStream, undefined);
+	test('works with readableWebStream({ type: "bytes" })', readableWebStream, 'bytes');
+
+	test('works with fetch()', async t => {
+		const {body} = await fetch(TEST_URL);
+		const result = await getStream(body);
+		const parsedResult = JSON.parse(result);
+		t.true(Array.isArray(parsedResult));
+	});
+}
 
 test('native string', async t => {
 	const result = await text(createStream(fixtureString));
