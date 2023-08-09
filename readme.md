@@ -61,7 +61,7 @@ The following methods read the stream's contents and return it as a promise.
 
 ### getStream(stream, options?)
 
-`stream`: [`stream.Readable`](https://nodejs.org/api/stream.html#class-streamreadable), [`ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream) or [`AsyncIterable<string | Buffer | ArrayBuffer | DataView | TypedArray>`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#the_async_iterator_and_async_iterable_protocols)\
+`stream`: [`stream.Readable`](https://nodejs.org/api/stream.html#class-streamreadable), [`ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream), or [`AsyncIterable<string | Buffer | ArrayBuffer | DataView | TypedArray>`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#the_async_iterator_and_async_iterable_protocols)\
 `options`: [`Options`](#options)
 
 Get the given `stream` as a string.
