@@ -49,6 +49,7 @@ const getStreamToString = async (t, inputStream) => {
 
 test('get stream from string to string', getStreamToString, fixtureString);
 test('get stream from buffer to string', getStreamToString, fixtureBuffer);
+test('get stream from arrayBuffer to string', getStreamToString, fixtureArrayBuffer);
 test('get stream from typedArray to string', getStreamToString, fixtureTypedArray);
 test('get stream from typedArray with offset to string', getStreamToString, fixtureTypedArrayWithOffset);
 test('get stream from uint16Array to string', getStreamToString, fixtureUint16Array);
@@ -64,6 +65,7 @@ const getStreamToBuffer = async (t, inputStream) => {
 
 test('get stream from string to buffer', getStreamToBuffer, fixtureString);
 test('get stream from buffer to buffer', getStreamToBuffer, fixtureBuffer);
+test('get stream from arrayBuffer to buffer', getStreamToBuffer, fixtureArrayBuffer);
 test('get stream from typedArray to buffer', getStreamToBuffer, fixtureTypedArray);
 test('get stream from typedArray with offset to buffer', getStreamToBuffer, fixtureTypedArrayWithOffset);
 test('get stream from uint16Array to buffer', getStreamToBuffer, fixtureUint16Array);
@@ -124,6 +126,7 @@ const checkMaxBuffer = async (t, setupFunction, longValue, shortValue) => {
 
 test('maxBuffer throws when size is exceeded with a string', checkMaxBuffer, setup, longString, fixtureString);
 test('maxBuffer throws when size is exceeded with a buffer', checkMaxBuffer, setupBuffer, longBuffer, fixtureBuffer);
+test('maxBuffer throws when size is exceeded with an arrayBuffer', checkMaxBuffer, setupBuffer, longArrayBuffer, fixtureArrayBuffer);
 test('maxBuffer throws when size is exceeded with a typedArray', checkMaxBuffer, setupBuffer, longTypedArray, fixtureTypedArray);
 test('maxBuffer throws when size is exceeded with an uint16Array', checkMaxBuffer, setupBuffer, longUint16Array, fixtureUint16Array);
 test('maxBuffer throws when size is exceeded with a dataView', checkMaxBuffer, setupBuffer, longDataView, fixtureDataView);
