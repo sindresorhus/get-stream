@@ -7,7 +7,7 @@ import {version as nodeVersion, env} from 'node:process';
 import {Duplex} from 'node:stream';
 import {text, buffer} from 'node:stream/consumers';
 import test from 'ava';
-import getStream, {getStreamAsBuffer, getStreamAsArrayBuffer, MaxBufferError} from './index.js';
+import getStream, {getStreamAsBuffer, getStreamAsArrayBuffer, getStreamAsArray, MaxBufferError} from './index.js';
 
 const fixtureString = 'unicorn\n';
 const fixtureBuffer = Buffer.from(fixtureString);
@@ -16,6 +16,10 @@ const fixtureArrayBuffer = fixtureTypedArray.buffer;
 const fixtureUint16Array = new Uint16Array(fixtureArrayBuffer);
 const fixtureDataView = new DataView(fixtureArrayBuffer);
 const fixtureUtf16 = Buffer.from(fixtureString, 'utf-16le');
+const fixtureMultibyteString = '\u1000';
+const fixtureMultibyteBuffer = Buffer.from(fixtureMultibyteString);
+const fixtureMultibyteUint16Array = new Uint16Array([0, 0]);
+const fixtureArray = [{}];
 
 const fixtureStringWide = `  ${fixtureString}  `;
 const fixtureTypedArrayWide = new TextEncoder().encode(fixtureStringWide);
@@ -30,13 +34,18 @@ const longTypedArray = new TextEncoder().encode(longString);
 const longArrayBuffer = longTypedArray.buffer;
 const longUint16Array = new Uint16Array(longArrayBuffer);
 const longDataView = new DataView(longArrayBuffer);
-const maxBuffer = fixtureString.length;
+const fixtureLength = fixtureString.length;
+const longMultibyteString = `${fixtureMultibyteString}\u1000`;
+const longMultibyteBuffer = Buffer.from(longMultibyteString);
+const longMultibyteUint16Array = new Uint16Array([0, 0, 0]);
+const longArray = [...fixtureArray, {}];
 
 const TEST_URL = 'https://nodejs.org/dist/index.json';
 
 const setup = (streamDef, options) => getStream(createStream(streamDef), options);
 const setupBuffer = (streamDef, options) => getStreamAsBuffer(createStream(streamDef), options);
 const setupArrayBuffer = (streamDef, options) => getStreamAsArrayBuffer(createStream(streamDef), options);
+const setupArray = (streamDef, options) => getStreamAsArray(createStream(streamDef), options);
 
 const createStream = streamDef => {
 	const generator = typeof streamDef === 'function' ? streamDef : function * () {
@@ -96,31 +105,59 @@ test('get stream from uint16Array with offset to arrayBuffer', getStreamToArrayB
 test('get stream from dataView to arrayBuffer', getStreamToArrayBuffer, fixtureDataView);
 test('get stream from dataView with offset to arrayBuffer', getStreamToArrayBuffer, fixtureDataViewWithOffset);
 
+const getStreamToArray = async (t, fixtureValue) => {
+	const result = await setupArray([fixtureValue]);
+	t.true(Array.isArray(result));
+	t.is(result.length, 1);
+	t.is(result[0], fixtureValue);
+};
+
+test('get stream from string to array', getStreamToArray, fixtureString);
+test('get stream from buffer to array', getStreamToArray, fixtureBuffer);
+test('get stream from arrayBuffer to array', getStreamToArray, fixtureArrayBuffer);
+test('get stream from typedArray to array', getStreamToArray, fixtureTypedArray);
+test('get stream from typedArray with offset to array', getStreamToArray, fixtureTypedArrayWithOffset);
+test('get stream from uint16Array to array', getStreamToArray, fixtureUint16Array);
+test('get stream from uint16Array with offset to array', getStreamToArray, fixtureUint16ArrayWithOffset);
+test('get stream from dataView to array', getStreamToArray, fixtureDataView);
+test('get stream from dataView with offset to array', getStreamToArray, fixtureDataViewWithOffset);
+
 const throwOnInvalidChunkType = async (t, setupFunction, inputStream) => {
 	await t.throwsAsync(setupFunction([inputStream]), {message: /not supported/});
+};
+
+const allowsAnyChunkType = async (t, setupFunction, inputStream) => {
+	await t.notThrowsAsync(setupFunction([inputStream]));
 };
 
 test('get stream from object to string', throwOnInvalidChunkType, setup, {});
 test('get stream from object to buffer', throwOnInvalidChunkType, setupBuffer, {});
 test('get stream from object to arrayBuffer', throwOnInvalidChunkType, setupArrayBuffer, {});
+test('get stream from object to array', allowsAnyChunkType, setupArray, {});
 test('get stream from array to string', throwOnInvalidChunkType, setup, []);
 test('get stream from array to buffer', throwOnInvalidChunkType, setupBuffer, []);
 test('get stream from array to arrayBuffer', throwOnInvalidChunkType, setupArrayBuffer, []);
+test('get stream from array to array', allowsAnyChunkType, setupArray, []);
 test('get stream from boolean to string', throwOnInvalidChunkType, setup, false);
 test('get stream from boolean to buffer', throwOnInvalidChunkType, setupBuffer, false);
 test('get stream from boolean to arrayBuffer', throwOnInvalidChunkType, setupArrayBuffer, false);
+test('get stream from boolean to array', allowsAnyChunkType, setupArray, false);
 test('get stream from number to string', throwOnInvalidChunkType, setup, 0);
 test('get stream from number to buffer', throwOnInvalidChunkType, setupBuffer, 0);
 test('get stream from number to arrayBuffer', throwOnInvalidChunkType, setupArrayBuffer, 0);
+test('get stream from number to array', allowsAnyChunkType, setupArray, 0);
 test('get stream from bigint to string', throwOnInvalidChunkType, setup, 0n);
 test('get stream from bigint to buffer', throwOnInvalidChunkType, setupBuffer, 0n);
 test('get stream from bigint to arrayBuffer', throwOnInvalidChunkType, setupArrayBuffer, 0n);
+test('get stream from bigint to array', allowsAnyChunkType, setupArray, 0n);
 test('get stream from undefined to string', throwOnInvalidChunkType, setup, undefined);
 test('get stream from undefined to buffer', throwOnInvalidChunkType, setupBuffer, undefined);
 test('get stream from undefined to arrayBuffer', throwOnInvalidChunkType, setupArrayBuffer, undefined);
+test('get stream from undefined to array', allowsAnyChunkType, setupArray, undefined);
 test('get stream from symbol to string', throwOnInvalidChunkType, setup, Symbol('test'));
 test('get stream from symbol to buffer', throwOnInvalidChunkType, setupBuffer, Symbol('test'));
 test('get stream from symbol to arrayBuffer', throwOnInvalidChunkType, setupArrayBuffer, Symbol('test'));
+test('get stream from symbol to array', allowsAnyChunkType, setupArray, Symbol('test'));
 
 test('get stream with mixed chunk types', async t => {
 	const result = await setup([fixtureString, fixtureBuffer, fixtureArrayBuffer, fixtureTypedArray, fixtureUint16Array, fixtureDataView]);
@@ -154,20 +191,26 @@ test('getStream should not affect additional listeners attached to the stream', 
 	t.is(await getStream(fixture), 'foobar');
 });
 
-const checkMaxBuffer = async (t, setupFunction, longValue, shortValue) => {
-	await t.throwsAsync(setupFunction([longValue], {maxBuffer}), {instanceOf: MaxBufferError});
-	await t.notThrowsAsync(setupFunction([shortValue], {maxBuffer}));
+// eslint-disable-next-line max-params
+const checkMaxBuffer = async (t, setupFunction, longValue, shortValue, maxBuffer) => {
+	await t.throwsAsync(setupFunction(longValue, {maxBuffer}), {instanceOf: MaxBufferError});
+	await t.notThrowsAsync(setupFunction(shortValue, {maxBuffer}));
 };
 
-test('maxBuffer throws when size is exceeded with a string', checkMaxBuffer, setup, longString, fixtureString);
-test('maxBuffer throws when size is exceeded with a buffer', checkMaxBuffer, setupBuffer, longBuffer, fixtureBuffer);
-test('maxBuffer throws when size is exceeded with an arrayBuffer', checkMaxBuffer, setupArrayBuffer, longArrayBuffer, fixtureArrayBuffer);
-test('maxBuffer throws when size is exceeded with a typedArray', checkMaxBuffer, setupArrayBuffer, longTypedArray, fixtureTypedArray);
-test('maxBuffer throws when size is exceeded with an uint16Array', checkMaxBuffer, setupArrayBuffer, longUint16Array, fixtureUint16Array);
-test('maxBuffer throws when size is exceeded with a dataView', checkMaxBuffer, setupArrayBuffer, longDataView, fixtureDataView);
+test('maxBuffer throws when size is exceeded with a string', checkMaxBuffer, setup, [longString], [fixtureString], fixtureLength);
+test('maxBuffer throws when size is exceeded with a buffer', checkMaxBuffer, setupBuffer, [longBuffer], [fixtureBuffer], fixtureLength);
+test('maxBuffer throws when size is exceeded with an arrayBuffer', checkMaxBuffer, setupArrayBuffer, [longArrayBuffer], [fixtureArrayBuffer], fixtureLength);
+test('maxBuffer throws when size is exceeded with a typedArray', checkMaxBuffer, setupArrayBuffer, [longTypedArray], [fixtureTypedArray], fixtureLength);
+test('maxBuffer throws when size is exceeded with an uint16Array', checkMaxBuffer, setupArrayBuffer, [longUint16Array], [fixtureUint16Array], fixtureLength);
+test('maxBuffer throws when size is exceeded with a dataView', checkMaxBuffer, setupArrayBuffer, [longDataView], [fixtureDataView], fixtureLength);
+
+test('maxBuffer unit is characters with getStream()', checkMaxBuffer, setup, [longMultibyteString], [fixtureMultibyteString], fixtureMultibyteString.length);
+test('maxBuffer unit is bytes with getStreamAsBuffer()', checkMaxBuffer, setupBuffer, [longMultibyteBuffer], [fixtureMultibyteBuffer], fixtureMultibyteBuffer.byteLength);
+test('maxBuffer unit is bytes with getStreamAsArrayBuffer()', checkMaxBuffer, setupArrayBuffer, [longMultibyteUint16Array], [fixtureMultibyteUint16Array], fixtureMultibyteUint16Array.byteLength);
+test('maxBuffer unit is each array element with getStreamAsArray()', checkMaxBuffer, setupArray, longArray, fixtureArray, fixtureArray.length);
 
 test('set error.bufferedData when `maxBuffer` is hit', async t => {
-	const error = await t.throwsAsync(setup([longString], {maxBuffer}), {instanceOf: MaxBufferError});
+	const error = await t.throwsAsync(setup([longString], {maxBuffer: fixtureLength}), {instanceOf: MaxBufferError});
 	t.is(error.bufferedData, longString);
 });
 

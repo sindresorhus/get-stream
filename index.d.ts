@@ -6,12 +6,14 @@ export class MaxBufferError extends Error {
 	constructor();
 }
 
-type StreamItem = string | Buffer | ArrayBuffer | ArrayBufferView;
-export type AnyStream = Readable | ReadableStream<StreamItem> | AsyncIterable<StreamItem>;
+type TextStreamItem = string | Buffer | ArrayBuffer | ArrayBufferView;
+export type AnyStream<SteamItem = TextStreamItem> = Readable | ReadableStream<SteamItem> | AsyncIterable<SteamItem>;
 
 export type Options = {
 	/**
 	Maximum length of the stream. If exceeded, the promise will be rejected with a `MaxBufferError`.
+
+	Depending on the [method](#api), the length is measured with [`string.length`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/length), [`buffer.length`](https://nodejs.org/api/buffer.html#buflength), [`arrayBuffer.byteLength`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer/byteLength) or [`array.length`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/length).
 
 	@default Infinity
 	*/
@@ -89,3 +91,18 @@ console.log(await getStreamAsArrayBuffer(readableStream));
 ```
 */
 export function getStreamAsArrayBuffer(stream: AnyStream, options?: Options): Promise<ArrayBuffer>;
+
+/**
+Get the given `stream` as an array. Unlike [other methods](#api), this supports [streams of objects](https://nodejs.org/api/stream.html#object-mode).
+
+@returns The stream's contents as a promise.
+
+@example
+```
+import {getStreamAsArray} from 'get-stream';
+
+const {body: readableStream} = await fetch('https://example.com');
+console.log(await getStreamAsArray(readableStream));
+```
+*/
+export function getStreamAsArray<Item>(stream: AnyStream<Item>, options?: Options): Promise<Item[]>;
