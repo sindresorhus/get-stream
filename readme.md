@@ -150,6 +150,8 @@ When all of the following conditions apply:
 Then the stream must be decoded using a transform stream like [`TextDecoderStream`](https://developer.mozilla.org/en-US/docs/Web/API/TextDecoderStream) or [`b64`](https://github.com/hapijs/b64).
 
 ```js
+import getStream from 'get-stream';
+
 const textDecoderStream = new TextDecoderStream('utf-16le');
 const {body: readableStream} = await fetch('https://example.com');
 console.log(await getStream(readableStream.pipeThrough(textDecoderStream)));
