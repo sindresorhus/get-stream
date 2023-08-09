@@ -61,9 +61,12 @@ const getChunkType = chunk => {
 
 	const prototypeName = objectToString.call(chunk);
 
+	if (prototypeName === '[object DataView]') {
+		return 'dataView';
+	}
+
 	if (
-		prototypeName !== '[object DataView]'
-		&& Number.isInteger(chunk.byteLength)
+		Number.isInteger(chunk.byteLength)
 		&& Number.isInteger(chunk.byteOffset)
 		&& objectToString.call(chunk.buffer) === '[object ArrayBuffer]'
 	) {
@@ -120,6 +123,7 @@ const chunkTypes = {
 		convertChunk: {
 			string: useBufferFrom,
 			buffer: identity,
+			dataView: useBufferFromWithOffset,
 			typedArray: useBufferFromWithOffset,
 			others: throwObjectStream,
 		},
@@ -129,6 +133,7 @@ const chunkTypes = {
 		convertChunk: {
 			string: identity,
 			buffer: useTextDecoder,
+			dataView: useTextDecoder,
 			typedArray: useTextDecoder,
 			others: throwObjectStream,
 		},
