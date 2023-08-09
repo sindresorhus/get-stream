@@ -38,6 +38,25 @@ test('get stream from buffer to buffer', getStreamToBuffer, fixtureBuffer);
 test('get stream from utf8 to utf8', getStreamToUtf8, fixtureString);
 test('get stream from utf8 to buffer', getStreamToBuffer, fixtureString);
 
+const throwOnInvalidChunkType = async (t, setupFunction, inputStream) => {
+	await t.throwsAsync(setupFunction([inputStream]), {message: /not supported/});
+};
+
+test('get stream from object to string', throwOnInvalidChunkType, setup, {});
+test('get stream from object to buffer', throwOnInvalidChunkType, setupBuffer, {});
+test('get stream from array to string', throwOnInvalidChunkType, setup, []);
+test('get stream from array to buffer', throwOnInvalidChunkType, setupBuffer, []);
+test('get stream from boolean to string', throwOnInvalidChunkType, setup, false);
+test('get stream from boolean to buffer', throwOnInvalidChunkType, setupBuffer, false);
+test('get stream from number to string', throwOnInvalidChunkType, setup, 0);
+test('get stream from number to buffer', throwOnInvalidChunkType, setupBuffer, 0);
+test('get stream from bigint to string', throwOnInvalidChunkType, setup, 0n);
+test('get stream from bigint to buffer', throwOnInvalidChunkType, setupBuffer, 0n);
+test('get stream from undefined to string', throwOnInvalidChunkType, setup, undefined);
+test('get stream from undefined to buffer', throwOnInvalidChunkType, setupBuffer, undefined);
+test('get stream from symbol to string', throwOnInvalidChunkType, setup, Symbol('test'));
+test('get stream from symbol to buffer', throwOnInvalidChunkType, setupBuffer, Symbol('test'));
+
 const multiByteString = 'a\u1000';
 const multiByteUint8Array = new TextEncoder().encode(multiByteString);
 const multiByteBuffer = [...multiByteUint8Array].map(byte => Buffer.from([byte]));
