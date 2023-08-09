@@ -51,12 +51,29 @@ const getChunkType = chunk => {
 		return 'string';
 	}
 
+	if (typeof chunk !== 'object' || chunk === null) {
+		return 'others';
+	}
+
 	if (Buffer.isBuffer(chunk)) {
 		return 'buffer';
 	}
 
+	const prototypeName = objectToString.call(chunk);
+
+	if (
+		prototypeName !== '[object DataView]'
+		&& Number.isInteger(chunk.byteLength)
+		&& Number.isInteger(chunk.byteOffset)
+		&& objectToString.call(chunk.buffer) === '[object ArrayBuffer]'
+	) {
+		return 'typedArray';
+	}
+
 	return 'others';
 };
+
+const {toString: objectToString} = Object.prototype;
 
 const getBufferedData = (chunks, getContents, textDecoder, length) => {
 	try {
@@ -90,6 +107,8 @@ const throwObjectStream = chunk => {
 
 const useBufferFrom = chunk => Buffer.from(chunk);
 
+const useBufferFromWithOffset = chunk => Buffer.from(chunk.buffer, chunk.byteOffset, chunk.byteLength);
+
 const getContentsAsBuffer = (chunks, textDecoder, length) => Buffer.concat(chunks, length);
 
 const useTextDecoder = (chunk, textDecoder) => textDecoder.decode(chunk, {stream: true});
@@ -101,6 +120,7 @@ const chunkTypes = {
 		convertChunk: {
 			string: useBufferFrom,
 			buffer: identity,
+			typedArray: useBufferFromWithOffset,
 			others: throwObjectStream,
 		},
 		getContents: getContentsAsBuffer,
@@ -109,6 +129,7 @@ const chunkTypes = {
 		convertChunk: {
 			string: identity,
 			buffer: useTextDecoder,
+			typedArray: useTextDecoder,
 			others: throwObjectStream,
 		},
 		getContents: getContentsAsString,
