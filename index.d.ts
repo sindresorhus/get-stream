@@ -51,6 +51,12 @@ console.log(await getStream(stream));
 //                                    \~\
 //                                     ~~
 ```
+
+@example
+```
+const {body: readableStream} = await fetch('https://example.com');
+console.log(await getStream(readableStream));
+```
 */
 export default function getStream(stream: AnyStream, options?: Options): Promise<string>;
 
