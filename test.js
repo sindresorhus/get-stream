@@ -1,5 +1,8 @@
 import {Buffer, constants as BufferConstants} from 'node:buffer';
 import {setTimeout} from 'node:timers/promises';
+import {spawn} from 'node:child_process';
+import {createReadStream} from 'node:fs';
+import {version as nodeVersion} from 'node:process';
 import {Duplex} from 'node:stream';
 import {text, buffer} from 'node:stream/consumers';
 import test from 'ava';
@@ -157,6 +160,22 @@ test('Throws if the first argument is undefined', firstArgumentCheck, undefined)
 test('Throws if the first argument is null', firstArgumentCheck, null);
 test('Throws if the first argument is a string', firstArgumentCheck, '');
 test('Throws if the first argument is an array', firstArgumentCheck, []);
+
+test('works with createReadStream() and buffers', async t => {
+	const result = await getStreamAsBuffer(createReadStream('fixture'));
+	t.true(result.equals(fixtureBuffer));
+});
+
+test('works with createReadStream() and utf8', async t => {
+	const result = await getStream(createReadStream('fixture', 'utf8'));
+	t.is(result, fixtureString);
+});
+
+test('works with child_process.spawn()', async t => {
+	const {stdout} = spawn('node', ['--version'], {stdio: ['ignore', 'pipe', 'ignore']});
+	const result = await getStream(stdout);
+	t.is(result.trim(), nodeVersion);
+});
 
 test('native string', async t => {
 	const result = await text(createStream(fixtureString));
