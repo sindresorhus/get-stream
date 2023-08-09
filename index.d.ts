@@ -8,7 +8,7 @@ export class MaxBufferError extends Error {
 
 export type Options = {
 	/**
-	Maximum length of the returned string. If it exceeds this value before the stream ends, the promise will be rejected with a `MaxBufferError` error.
+	Maximum length of the stream. If exceeded, the promise will be rejected with a `MaxBufferError`.
 
 	@default Infinity
 	*/
@@ -18,7 +18,7 @@ export type Options = {
 /**
 Get the given `stream` as a string.
 
-@returns A promise that resolves when the end event fires on the stream, indicating that there is no more data to be read. The stream is switched to flowing mode.
+@returns The stream's contents as a promise.
 
 @example
 ```
@@ -54,14 +54,13 @@ export default function getStream(stream: Readable, options?: Options): Promise<
 /**
 Get the given `stream` as a buffer.
 
-It honors the `maxBuffer` option as above, but it refers to byte length rather than string length.
+@returns The stream's contents as a promise.
 
 @example
 ```
 import {getStreamAsBuffer} from 'get-stream';
 
 const stream = fs.createReadStream('unicorn.png');
-
 console.log(await getStreamAsBuffer(stream));
 ```
 */
