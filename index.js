@@ -23,10 +23,11 @@ const getStreamContents = async (stream, {convertChunk, getContents}, {maxBuffer
 
 	let length = 0;
 	const chunks = [];
+	const textDecoder = new TextDecoder();
 
 	try {
 		for await (const chunk of stream) {
-			const convertedChunk = convertChunk(chunk);
+			const convertedChunk = convertChunk(chunk, textDecoder);
 			chunks.push(convertedChunk);
 			length += convertedChunk.length;
 
@@ -35,20 +36,20 @@ const getStreamContents = async (stream, {convertChunk, getContents}, {maxBuffer
 			}
 		}
 
-		return getContents(chunks, length);
+		return getContents(chunks, textDecoder, length);
 	} catch (error) {
-		error.bufferedData = getBufferedData(chunks, getContents, length);
+		error.bufferedData = getBufferedData(chunks, getContents, textDecoder, length);
 		throw error;
 	}
 };
 
 const isAsyncIterable = stream => typeof stream === 'object' && stream !== null && typeof stream[Symbol.asyncIterator] === 'function';
 
-const getBufferedData = (chunks, getContents, length) => {
+const getBufferedData = (chunks, getContents, textDecoder, length) => {
 	try {
-		return getContents(chunks, length);
+		return getContents(chunks, textDecoder, length);
 	} catch {
-		return truncateBufferedValue(chunks, getContents);
+		return truncateBufferedValue(chunks, getContents, textDecoder);
 	}
 };
 
@@ -56,12 +57,12 @@ const getBufferedData = (chunks, getContents, length) => {
 // it will fail. We retry it with increasingly smaller inputs, so that
 // `error.bufferedData` is still set, albeit with a truncated value, since that
 // is still useful for debugging.
-const truncateBufferedValue = (chunks, getContents) => {
+const truncateBufferedValue = (chunks, getContents, textDecoder) => {
 	let chunksCount = chunks.length;
 	do {
 		chunksCount = Math.floor(chunksCount / SPLIT_FACTOR);
 		try {
-			return getContents(chunks.slice(0, chunksCount));
+			return getContents(chunks.slice(0, chunksCount), textDecoder);
 		} catch {}
 	} while (chunksCount > 0);
 };
@@ -70,11 +71,11 @@ const SPLIT_FACTOR = 2;
 
 const convertChunkToBuffer = chunk => Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
 
-const getContentsAsBuffer = (chunks, length) => Buffer.concat(chunks, length);
+const getContentsAsBuffer = (chunks, textDecoder, length) => Buffer.concat(chunks, length);
 
-const convertChunkToString = chunk => typeof chunk === 'string' ? chunk : chunk.toString();
+const convertChunkToString = (chunk, textDecoder) => typeof chunk === 'string' ? chunk : textDecoder.decode(chunk, {stream: true});
 
-const getContentsAsString = chunks => chunks.join('');
+const getContentsAsString = (chunks, textDecoder) => `${chunks.join('')}${textDecoder.decode()}`;
 
 const chunkTypes = {
 	buffer: {convertChunk: convertChunkToBuffer, getContents: getContentsAsBuffer},

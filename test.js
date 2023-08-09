@@ -1,6 +1,6 @@
 import {Buffer, constants as BufferConstants} from 'node:buffer';
 import {setTimeout} from 'node:timers/promises';
-import {compose} from 'node:stream';
+import {Duplex} from 'node:stream';
 import {text, buffer} from 'node:stream/consumers';
 import test from 'ava';
 import getStream, {getStreamAsBuffer, MaxBufferError} from './index.js';
@@ -12,16 +12,24 @@ const shortString = 'abc';
 const longString = `${shortString}d`;
 const maxBuffer = shortString.length;
 
-const setup = (streamDef, options) => getStream(compose(streamDef), options);
-const setupBuffer = (streamDef, options) => getStreamAsBuffer(compose(streamDef), options);
+const setup = (streamDef, options) => getStream(createStream(streamDef), options);
+const setupBuffer = (streamDef, options) => getStreamAsBuffer(createStream(streamDef), options);
+
+const createStream = streamDef => {
+	const generator = typeof streamDef === 'function' ? streamDef : function * () {
+		yield * streamDef;
+	};
+
+	return Duplex.from(generator);
+};
 
 const getStreamToUtf8 = async (t, inputStream) => {
-	const result = await setup(inputStream);
+	const result = await setup([inputStream]);
 	t.is(result, fixtureString);
 };
 
 const getStreamToBuffer = async (t, inputStream) => {
-	const result = await setupBuffer(inputStream);
+	const result = await setupBuffer([inputStream]);
 	t.true(result.equals(fixtureBuffer));
 };
 
@@ -30,9 +38,29 @@ test('get stream from buffer to buffer', getStreamToBuffer, fixtureBuffer);
 test('get stream from utf8 to utf8', getStreamToUtf8, fixtureString);
 test('get stream from utf8 to buffer', getStreamToBuffer, fixtureString);
 
+const multiByteString = 'a\u1000';
+const multiByteUint8Array = new TextEncoder().encode(multiByteString);
+const multiByteBuffer = [...multiByteUint8Array].map(byte => Buffer.from([byte]));
+const INVALID_UTF8_MARKER = '\uFFFD';
+
+test('get stream with partial UTF-8 sequences', async t => {
+	const result = await setup(multiByteBuffer);
+	t.is(result, multiByteString);
+});
+
+test('get stream with truncated UTF-8 sequences', async t => {
+	const result = await setup(multiByteBuffer.slice(0, -1));
+	t.is(result, `${multiByteString.slice(0, -1)}${INVALID_UTF8_MARKER}`);
+});
+
+test('get stream with invalid UTF-8 sequences', async t => {
+	const result = await setup(multiByteBuffer.slice(1, 2));
+	t.is(result, INVALID_UTF8_MARKER);
+});
+
 test('getStream should not affect additional listeners attached to the stream', async t => {
 	t.plan(3);
-	const fixture = compose(['foo', 'bar']);
+	const fixture = createStream(['foo', 'bar']);
 	fixture.on('data', chunk => t.true(typeof chunk === 'string'));
 	t.is(await getStream(fixture), 'foobar');
 });
@@ -56,7 +84,7 @@ const errorStream = async function * () {
 };
 
 test('set error.bufferedData when stream errors', async t => {
-	const error = await t.throwsAsync(setup(errorStream()));
+	const error = await t.throwsAsync(setup(errorStream));
 	t.is(error.bufferedData, shortString);
 });
 
@@ -69,7 +97,7 @@ const infiniteIteration = async function * () {
 };
 
 test('handles infinite stream', async t => {
-	await t.throwsAsync(setup(infiniteIteration(), {maxBuffer: 1}), {instanceOf: MaxBufferError});
+	await t.throwsAsync(setup(infiniteIteration, {maxBuffer: 1}), {instanceOf: MaxBufferError});
 });
 
 test.serial('handles streams larger than buffer max length', async t => {
@@ -112,11 +140,11 @@ test('Throws if the first argument is a string', firstArgumentCheck, '');
 test('Throws if the first argument is an array', firstArgumentCheck, []);
 
 test('native string', async t => {
-	const result = await text(compose(fixtureString));
+	const result = await text(createStream(fixtureString));
 	t.is(result, fixtureString);
 });
 
 test('native buffer', async t => {
-	const result = await buffer(compose(fixtureString));
+	const result = await buffer(createStream(fixtureString));
 	t.true(result.equals(fixtureBuffer));
 });
