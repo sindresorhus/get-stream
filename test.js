@@ -15,6 +15,7 @@ const fixtureTypedArray = new TextEncoder().encode(fixtureString);
 const fixtureArrayBuffer = fixtureTypedArray.buffer;
 const fixtureUint16Array = new Uint16Array(fixtureArrayBuffer);
 const fixtureDataView = new DataView(fixtureArrayBuffer);
+const fixtureUtf16 = Buffer.from(fixtureString, 'utf-16le');
 
 const fixtureStringWide = `  ${fixtureString}  `;
 const fixtureTypedArrayWide = new TextEncoder().encode(fixtureStringWide);
@@ -282,6 +283,16 @@ if (!nodeVersion.startsWith('v16.')) {
 		const result = await getStream(body);
 		const parsedResult = JSON.parse(result);
 		t.true(Array.isArray(parsedResult));
+	});
+
+	test('can use TextDecoderStream', async t => {
+		// @todo Remove the following comment when dropping support for Node 16
+		// eslint-disable-next-line no-undef
+		const textDecoderStream = new TextDecoderStream('utf-16le');
+		const result = await getStream(
+			createReadableStream(fixtureUtf16).pipeThrough(textDecoderStream),
+		);
+		t.is(result, fixtureString);
 	});
 }
 

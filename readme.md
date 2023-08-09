@@ -114,7 +114,9 @@ try {
 }
 ```
 
-## Tip
+## Tips
+
+### `node:stream/consumers`
 
 If you do not need [`maxBuffer`](#maxbuffer) nor [`error.bufferedData`](#errors), you can use [`node:stream/consumers`](https://nodejs.org/api/webstreams.html#utility-consumers) instead of this package.
 
@@ -136,6 +138,21 @@ or:
 
 ```js
 console.log(await arrayBuffer(stream))
+```
+
+### Non-UTF8 encoding
+
+When all of the following conditions apply:
+  - [`getStream()`](#getstreamstream-options) is used (as opposed to [`getStreamAsBuffer()`](#getstreamasbufferstream-options) or [`getStreamAsArrayBuffer()`](#getstreamasarraybufferstream-options))
+  - The stream is binary (not text)
+  - The stream's encoding is not UTF8 (for example, it is UTF16, hexadecimal, or base64)
+
+Then the stream must be decoded using a transform stream like [`TextDecoderStream`](https://developer.mozilla.org/en-US/docs/Web/API/TextDecoderStream) or [`b64`](https://github.com/hapijs/b64).
+
+```js
+const textDecoderStream = new TextDecoderStream('utf-16le');
+const {body: readableStream} = await fetch('https://example.com');
+console.log(await getStream(readableStream.pipeThrough(textDecoderStream)));
 ```
 
 ## FAQ
