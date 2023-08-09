@@ -27,7 +27,8 @@ const getStreamContents = async (stream, {convertChunk, getContents}, {maxBuffer
 
 	try {
 		for await (const chunk of stream) {
-			const convertedChunk = convertChunk(chunk, textDecoder);
+			const chunkType = getChunkType(chunk);
+			const convertedChunk = convertChunk[chunkType](chunk, textDecoder);
 			chunks.push(convertedChunk);
 			length += convertedChunk.length;
 
@@ -44,6 +45,18 @@ const getStreamContents = async (stream, {convertChunk, getContents}, {maxBuffer
 };
 
 const isAsyncIterable = stream => typeof stream === 'object' && stream !== null && typeof stream[Symbol.asyncIterator] === 'function';
+
+const getChunkType = chunk => {
+	if (typeof chunk === 'string') {
+		return 'string';
+	}
+
+	if (Buffer.isBuffer(chunk)) {
+		return 'buffer';
+	}
+
+	return 'others';
+};
 
 const getBufferedData = (chunks, getContents, textDecoder, length) => {
 	try {
@@ -69,15 +82,35 @@ const truncateBufferedValue = (chunks, getContents, textDecoder) => {
 
 const SPLIT_FACTOR = 2;
 
-const convertChunkToBuffer = chunk => Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+const identity = value => value;
+
+const throwObjectStream = chunk => {
+	throw new Error(`Streams in object mode are not supported: ${String(chunk)}`);
+};
+
+const useBufferFrom = chunk => Buffer.from(chunk);
 
 const getContentsAsBuffer = (chunks, textDecoder, length) => Buffer.concat(chunks, length);
 
-const convertChunkToString = (chunk, textDecoder) => typeof chunk === 'string' ? chunk : textDecoder.decode(chunk, {stream: true});
+const useTextDecoder = (chunk, textDecoder) => textDecoder.decode(chunk, {stream: true});
 
 const getContentsAsString = (chunks, textDecoder) => `${chunks.join('')}${textDecoder.decode()}`;
 
 const chunkTypes = {
-	buffer: {convertChunk: convertChunkToBuffer, getContents: getContentsAsBuffer},
-	string: {convertChunk: convertChunkToString, getContents: getContentsAsString},
+	buffer: {
+		convertChunk: {
+			string: useBufferFrom,
+			buffer: identity,
+			others: throwObjectStream,
+		},
+		getContents: getContentsAsBuffer,
+	},
+	string: {
+		convertChunk: {
+			string: identity,
+			buffer: useTextDecoder,
+			others: throwObjectStream,
+		},
+		getContents: getContentsAsString,
+	},
 };
