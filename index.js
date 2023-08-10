@@ -15,8 +15,19 @@ export async function getStreamAsBuffer(stream, options) {
 		throw new Error('getStreamAsBuffer() is only supported in Node.js');
 	}
 
-	return getStreamContents(stream, chunkTypes.buffer, options);
+	try {
+		return arrayBufferToNodeBuffer(await getStreamAsArrayBuffer(stream, options));
+	} catch (error) {
+		if (error.bufferedData !== undefined) {
+			error.bufferedData = arrayBufferToNodeBuffer(error.bufferedData);
+		}
+
+		throw error;
+	}
 }
+
+// eslint-disable-next-line n/prefer-global/buffer
+const arrayBufferToNodeBuffer = arrayBuffer => globalThis.Buffer.from(arrayBuffer);
 
 export async function getStreamAsArrayBuffer(stream, options) {
 	return getStreamContents(stream, chunkTypes.arrayBuffer, options);
@@ -136,15 +147,6 @@ const increment = () => 1;
 
 const getLengthProp = convertedChunk => convertedChunk.length;
 
-// eslint-disable-next-line n/prefer-global/buffer
-const useBufferFrom = chunk => globalThis.Buffer.from(chunk);
-
-// eslint-disable-next-line n/prefer-global/buffer
-const useBufferFromWithOffset = chunk => globalThis.Buffer.from(chunk.buffer, chunk.byteOffset, chunk.byteLength);
-
-// eslint-disable-next-line n/prefer-global/buffer
-const getContentsAsBuffer = (chunks, textDecoder, length) => globalThis.Buffer.concat(chunks, length);
-
 const useTextEncoder = chunk => textEncoder.encode(chunk);
 const textEncoder = new TextEncoder();
 
@@ -180,18 +182,6 @@ const chunkTypes = {
 		},
 		getSize: increment,
 		getContents: identity,
-	},
-	buffer: {
-		convertChunk: {
-			string: useBufferFrom,
-			buffer: identity,
-			arrayBuffer: useBufferFrom,
-			dataView: useBufferFromWithOffset,
-			typedArray: useBufferFromWithOffset,
-			others: throwObjectStream,
-		},
-		getSize: getLengthProp,
-		getContents: getContentsAsBuffer,
 	},
 	arrayBuffer: {
 		convertChunk: {
