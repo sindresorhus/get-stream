@@ -37,13 +37,13 @@ export default async function getStream(stream, options) {
 	return getStreamContents(stream, chunkTypes.string, options);
 }
 
-const getStreamContents = async (stream, {convertChunk, getSize, getContents}, {maxBuffer = Number.POSITIVE_INFINITY} = {}) => {
+const getStreamContents = async (stream, {init, convertChunk, getSize, addChunk, finalize}, {maxBuffer = Number.POSITIVE_INFINITY} = {}) => {
 	if (!isAsyncIterable(stream)) {
 		throw new Error('The first argument must be a Readable, a ReadableStream, or an async iterable.');
 	}
 
 	let length = 0;
-	const chunks = [];
+	let contents = init();
 	const textDecoder = new TextDecoder();
 
 	try {
@@ -56,13 +56,14 @@ const getStreamContents = async (stream, {convertChunk, getSize, getContents}, {
 				throw new MaxBufferError();
 			}
 
+			const previousLength = length;
 			length += chunkSize;
-			chunks.push(convertedChunk);
+			contents = addChunk(convertedChunk, contents, length, previousLength);
 		}
 
-		return getContents(chunks, textDecoder, length);
+		return finalize(contents, length, textDecoder);
 	} catch (error) {
-		error.bufferedData = getBufferedData({chunks, getContents, getSize, textDecoder, length});
+		error.bufferedData = finalize(contents, length, textDecoder);
 		throw error;
 	}
 };
@@ -108,46 +109,24 @@ const getChunkType = chunk => {
 
 const {toString: objectToString} = Object.prototype;
 
-const getBufferedData = ({chunks, getContents, getSize, textDecoder, length}) => {
-	try {
-		return getContents(chunks, textDecoder, length);
-	} catch {
-		return truncateBufferedValue({chunks, getContents, getSize, textDecoder});
-	}
-};
-
-// If the input is larger than the maximum length for a string or a buffer,
-// it will fail. We retry it with increasingly smaller inputs, so that
-// `error.bufferedData` is still set, albeit with a truncated value, since that
-// is still useful for debugging.
-const truncateBufferedValue = ({chunks, getContents, getSize, textDecoder}) => {
-	let chunksCount = chunks.length;
-	do {
-		chunksCount = Math.floor(chunksCount / SPLIT_FACTOR);
-		const fewerChunks = chunks.slice(0, chunksCount);
-
-		let length = 0;
-		for (const chunk of fewerChunks) {
-			length += getSize(chunk);
-		}
-
-		try {
-			return getContents(fewerChunks, textDecoder, length);
-		} catch {}
-	} while (chunksCount > 0);
-};
-
-const SPLIT_FACTOR = 2;
-
 const identity = value => value;
 
 const throwObjectStream = chunk => {
 	throw new Error(`Streams in object mode are not supported: ${String(chunk)}`);
 };
 
+const getLengthProp = convertedChunk => convertedChunk.length;
+
+const initArray = () => ([]);
+
 const increment = () => 1;
 
-const getLengthProp = convertedChunk => convertedChunk.length;
+const addArrayChunk = (convertedChunk, contents) => {
+	contents.push(convertedChunk);
+	return contents;
+};
+
+const initArrayBuffer = () => new Uint8Array(0);
 
 const useTextEncoder = chunk => textEncoder.encode(chunk);
 const textEncoder = new TextEncoder();
@@ -156,24 +135,64 @@ const useUint8Array = chunk => new Uint8Array(chunk);
 
 const useUint8ArrayWithOffset = chunk => new Uint8Array(chunk.buffer, chunk.byteOffset, chunk.byteLength);
 
-const getContentsAsArrayBuffer = (chunks, textDecoder, length) => {
-	const contents = new Uint8Array(length);
+// `contents` is an increasingly growing `Uint8Array`.
+const addArrayBufferChunk = (convertedChunk, contents, length, previousLength) => {
+	const newContents = hasArrayBufferResize() ? resizeArrayBufferFast(contents, length) : resizeArrayBuffer(contents, length);
+	newContents.set(convertedChunk, previousLength);
+	return newContents;
+};
 
-	let offset = 0;
-	for (const chunk of chunks) {
-		contents.set(chunk, offset);
-		offset += chunk.length;
+// Without `ArrayBuffer.resize()`, `contents` size is always a power of 2.
+// This means its last bytes are zeroes (not stream data), which need to be
+// trimmed at the end with `ArrayBuffer.slice()`.
+const resizeArrayBuffer = (contents, length) => {
+	if (length <= contents.length) {
+		return contents;
 	}
 
-	return contents.buffer;
+	const newContents = new Uint8Array(getNewContentsLength(length));
+	newContents.set(contents, 0);
+	return newContents;
 };
+
+// With `ArrayBuffer.resize()`, `contents` size matches exactly the size of
+// the stream data. It does not include extraneous zeroes to trim at the end.
+// The underlying `ArrayBuffer` does allocate a number of bytes that is a power
+// of 2, but those bytes are only visible after calling `ArrayBuffer.resize()`.
+const resizeArrayBufferFast = (contents, length) => {
+	if (length <= contents.buffer.maxByteLength) {
+		contents.buffer.resize(length);
+		return new Uint8Array(contents.buffer, 0, length);
+	}
+
+	const arrayBuffer = new ArrayBuffer(length, {maxByteLength: getNewContentsLength(length)});
+	const newContents = new Uint8Array(arrayBuffer);
+	newContents.set(contents, 0);
+	return newContents;
+};
+
+// Retrieve the closest `length` that is both >= and a power of 2
+const getNewContentsLength = length => SCALE_FACTOR ** Math.ceil(Math.log(length) / Math.log(SCALE_FACTOR));
+
+const SCALE_FACTOR = 2;
+
+const finalizeArrayBuffer = ({buffer}, length) => hasArrayBufferResize() ? buffer : buffer.slice(0, length);
+
+// `ArrayBuffer.slice()` is slow. When `ArrayBuffer.resize()` is available
+// (Node >=20.0.0, Safari >=16.4 and Chrome), we can use it instead.
+const hasArrayBufferResize = () => 'resize' in ArrayBuffer.prototype;
+
+const initString = () => '';
 
 const useTextDecoder = (chunk, textDecoder) => textDecoder.decode(chunk, {stream: true});
 
-const getContentsAsString = (chunks, textDecoder) => `${chunks.join('')}${textDecoder.decode()}`;
+const addStringChunk = (convertedChunk, contents) => contents + convertedChunk;
+
+const finalizeString = (contents, length, textDecoder) => `${contents}${textDecoder.decode()}`;
 
 const chunkTypes = {
 	array: {
+		init: initArray,
 		convertChunk: {
 			string: identity,
 			buffer: identity,
@@ -183,9 +202,11 @@ const chunkTypes = {
 			others: identity,
 		},
 		getSize: increment,
-		getContents: identity,
+		addChunk: addArrayChunk,
+		finalize: identity,
 	},
 	arrayBuffer: {
+		init: initArrayBuffer,
 		convertChunk: {
 			string: useTextEncoder,
 			buffer: useUint8Array,
@@ -195,9 +216,11 @@ const chunkTypes = {
 			others: throwObjectStream,
 		},
 		getSize: getLengthProp,
-		getContents: getContentsAsArrayBuffer,
+		addChunk: addArrayBufferChunk,
+		finalize: finalizeArrayBuffer,
 	},
 	string: {
+		init: initString,
 		convertChunk: {
 			string: identity,
 			buffer: useTextDecoder,
@@ -207,6 +230,7 @@ const chunkTypes = {
 			others: throwObjectStream,
 		},
 		getSize: getLengthProp,
-		getContents: getContentsAsString,
+		addChunk: addStringChunk,
+		finalize: finalizeString,
 	},
 };
