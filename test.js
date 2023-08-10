@@ -211,8 +211,8 @@ test('maxBuffer unit is each array element with getStreamAsArray()', checkMaxBuf
 
 test('set error.bufferedData when `maxBuffer` is hit', async t => {
 	const maxBuffer = fixtureLength - 1;
-	const {bufferedData} = await t.throwsAsync(setup([...fixtureString], {maxBuffer}), {instanceOf: MaxBufferError});
-	t.true(fixtureString.startsWith(bufferedData));
+	const {bufferedData} = await t.throwsAsync(setupBuffer([...fixtureString], {maxBuffer}), {instanceOf: MaxBufferError});
+	t.true(fixtureString.startsWith(bufferedData.toString()));
 	t.true(bufferedData.length <= maxBuffer);
 });
 
