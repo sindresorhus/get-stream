@@ -39,12 +39,13 @@ const getStreamContents = async (stream, {convertChunk, getSize, getContents}, {
 		for await (const chunk of stream) {
 			const chunkType = getChunkType(chunk);
 			const convertedChunk = convertChunk[chunkType](chunk, textDecoder);
-			chunks.push(convertedChunk);
 			length += getSize(convertedChunk);
 
 			if (length > maxBuffer) {
 				throw new MaxBufferError();
 			}
+
+			chunks.push(convertedChunk);
 		}
 
 		return getContents(chunks, textDecoder, length);
