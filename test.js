@@ -3,7 +3,7 @@ import {setTimeout} from 'node:timers/promises';
 import {spawn} from 'node:child_process';
 import {createReadStream} from 'node:fs';
 import {open} from 'node:fs/promises';
-import {version as nodeVersion} from 'node:process';
+import {version as nodeVersion, env} from 'node:process';
 import {Duplex} from 'node:stream';
 import {text, buffer} from 'node:stream/consumers';
 import test from 'ava';
@@ -194,28 +194,49 @@ test('handles infinite stream', async t => {
 	await t.throwsAsync(setup(infiniteIteration, {maxBuffer: 1}), {instanceOf: MaxBufferError});
 });
 
-test.serial('handles streams larger than buffer max length', async t => {
-	t.timeout(BIG_TEST_DURATION);
+const getMaxBufferChunks = () => {
 	const chunkSize = 2 ** 16;
 	const chunkCount = Math.floor(BufferConstants.MAX_LENGTH / chunkSize * 2);
 	const chunk = Buffer.alloc(chunkSize);
-	const chunks = Array.from({length: chunkCount}, () => chunk);
-	const {bufferedData} = await t.throwsAsync(setupBuffer(chunks));
-	t.is(bufferedData[0], 0);
-});
+	return Array.from({length: chunkCount}, () => chunk);
+};
 
-test.serial('handles streams larger than string max length', async t => {
-	t.timeout(BIG_TEST_DURATION);
+const getMaxStringChunks = () => {
 	const chunkSize = 2 ** 16;
 	const chunkCount = Math.floor(BufferConstants.MAX_STRING_LENGTH / chunkSize * 2);
 	const chunk = '.'.repeat(chunkSize);
-	const chunks = Array.from({length: chunkCount}, () => chunk);
-	const {bufferedData} = await t.throwsAsync(setup(chunks));
+	return Array.from({length: chunkCount}, () => chunk);
+};
+
+const maxBufferChunks = getMaxBufferChunks();
+const maxStringChunks = getMaxStringChunks();
+
+// Running this test works locally but makes `ava` process crash when run in
+// GitHub actions. Unfortunately, the test requires building a very large
+// `ArrayBuffer` in order to test how `get-stream` handles it, so there is no
+// way around this but to keep the following test local-only.
+if (!env.CI) {
+	test.serial('handles streams larger than arrayBuffer max length', async t => {
+		t.timeout(BIG_TEST_DURATION);
+		const {bufferedData} = await t.throwsAsync(setupArrayBuffer(maxBufferChunks));
+		t.is(new Uint8Array(bufferedData)[0], 0);
+	});
+
+	test.serial('handles streams larger than buffer max length', async t => {
+		t.timeout(BIG_TEST_DURATION);
+		const {bufferedData} = await t.throwsAsync(setupBuffer(maxBufferChunks));
+		t.is(bufferedData[0], 0);
+	});
+}
+
+test.serial('handles streams larger than string max length', async t => {
+	t.timeout(BIG_TEST_DURATION);
+	const {bufferedData} = await t.throwsAsync(setup(maxStringChunks));
 	t.is(bufferedData[0], '.');
 });
 
 // Tests related to big buffers/strings can be slow. We run them serially and
-// with a higher timeout to ensure they do not randomly fail
+// with a higher timeout to ensure they do not randomly fail.
 const BIG_TEST_DURATION = '2m';
 
 test('handles streams with a single chunk larger than string max length', async t => {

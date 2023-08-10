@@ -22,7 +22,7 @@ export default async function getStream(stream, options) {
 	return getStreamContents(stream, chunkTypes.string, options);
 }
 
-const getStreamContents = async (stream, {convertChunk, getContents}, {maxBuffer = Number.POSITIVE_INFINITY} = {}) => {
+const getStreamContents = async (stream, {convertChunk, getSize, getContents}, {maxBuffer = Number.POSITIVE_INFINITY} = {}) => {
 	if (!isAsyncIterable(stream)) {
 		throw new Error('The first argument must be a Readable, a ReadableStream, or an async iterable.');
 	}
@@ -36,7 +36,7 @@ const getStreamContents = async (stream, {convertChunk, getContents}, {maxBuffer
 			const chunkType = getChunkType(chunk);
 			const convertedChunk = convertChunk[chunkType](chunk, textDecoder);
 			chunks.push(convertedChunk);
-			length += convertedChunk.length;
+			length += getSize(convertedChunk);
 
 			if (length > maxBuffer) {
 				throw new MaxBufferError();
@@ -45,7 +45,7 @@ const getStreamContents = async (stream, {convertChunk, getContents}, {maxBuffer
 
 		return getContents(chunks, textDecoder, length);
 	} catch (error) {
-		error.bufferedData = getBufferedData(chunks, getContents, textDecoder, length);
+		error.bufferedData = getBufferedData({chunks, getContents, getSize, textDecoder, length});
 		throw error;
 	}
 };
@@ -91,11 +91,11 @@ const getChunkType = chunk => {
 
 const {toString: objectToString} = Object.prototype;
 
-const getBufferedData = (chunks, getContents, textDecoder, length) => {
+const getBufferedData = ({chunks, getContents, getSize, textDecoder, length}) => {
 	try {
 		return getContents(chunks, textDecoder, length);
 	} catch {
-		return truncateBufferedValue(chunks, getContents, textDecoder);
+		return truncateBufferedValue({chunks, getContents, getSize, textDecoder});
 	}
 };
 
@@ -103,12 +103,19 @@ const getBufferedData = (chunks, getContents, textDecoder, length) => {
 // it will fail. We retry it with increasingly smaller inputs, so that
 // `error.bufferedData` is still set, albeit with a truncated value, since that
 // is still useful for debugging.
-const truncateBufferedValue = (chunks, getContents, textDecoder) => {
+const truncateBufferedValue = ({chunks, getContents, getSize, textDecoder}) => {
 	let chunksCount = chunks.length;
 	do {
 		chunksCount = Math.floor(chunksCount / SPLIT_FACTOR);
+		const fewerChunks = chunks.slice(0, chunksCount);
+
+		let length = 0;
+		for (const chunk of fewerChunks) {
+			length += getSize(chunk);
+		}
+
 		try {
-			return getContents(chunks.slice(0, chunksCount), textDecoder);
+			return getContents(fewerChunks, textDecoder, length);
 		} catch {}
 	} while (chunksCount > 0);
 };
@@ -120,6 +127,8 @@ const identity = value => value;
 const throwObjectStream = chunk => {
 	throw new Error(`Streams in object mode are not supported: ${String(chunk)}`);
 };
+
+const getLengthProp = convertedChunk => convertedChunk.length;
 
 // eslint-disable-next-line n/prefer-global/buffer
 const useBufferFrom = chunk => globalThis.Buffer.from(chunk);
@@ -163,6 +172,7 @@ const chunkTypes = {
 			typedArray: useBufferFromWithOffset,
 			others: throwObjectStream,
 		},
+		getSize: getLengthProp,
 		getContents: getContentsAsBuffer,
 	},
 	arrayBuffer: {
@@ -174,6 +184,7 @@ const chunkTypes = {
 			typedArray: useUint8ArrayWithOffset,
 			others: throwObjectStream,
 		},
+		getSize: getLengthProp,
 		getContents: getContentsAsArrayBuffer,
 	},
 	string: {
@@ -185,6 +196,7 @@ const chunkTypes = {
 			typedArray: useTextDecoder,
 			others: throwObjectStream,
 		},
+		getSize: getLengthProp,
 		getContents: getContentsAsString,
 	},
 };
