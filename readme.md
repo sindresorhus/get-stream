@@ -1,11 +1,11 @@
 # get-stream
 
-> Get a stream as a string, Buffer or ArrayBuffer
+> Get a stream as a string, Buffer, ArrayBuffer or array
 
 ## Features
 
 - Works in any JavaScript environment ([Node.js](#nodejs-streams), [browsers](#web-streams), etc.).
-- Supports both [text streams](#get-stream) and [binary streams](#getstreamasbufferstream-options).
+- Supports [text streams](#getstreamstream-options), [binary streams](#getstreamasbufferstream-options) and [object streams](#getstreamasarraystream-options).
 - Can set a [maximum stream size](#maxbuffer).
 - Returns [partially read data](#errors) when the stream errors.
 
@@ -89,6 +89,17 @@ const {body: readableStream} = await fetch('https://example.com');
 console.log(await getStreamAsArrayBuffer(readableStream));
 ```
 
+### getStreamAsArray(stream, options?)
+
+Get the given `stream` as an array. Unlike [other methods](#api), this supports [streams of objects](https://nodejs.org/api/stream.html#object-mode).
+
+```js
+import {getStreamAsArray} from 'get-stream';
+
+const {body: readableStream} = await fetch('https://example.com');
+console.log(await getStreamAsArray(readableStream));
+```
+
 #### options
 
 Type: `object`
@@ -100,9 +111,11 @@ Default: `Infinity`
 
 Maximum length of the stream. If exceeded, the promise will be rejected with a `MaxBufferError`.
 
+Depending on the [method](#api), the length is measured with [`string.length`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/length), [`buffer.length`](https://nodejs.org/api/buffer.html#buflength), [`arrayBuffer.byteLength`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer/byteLength) or [`array.length`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/length).
+
 ## Errors
 
-If the stream errors, the returned promise will be rejected with the `error`. Any contents already read from the stream will be set to `error.bufferedData`, which is a `string`, a `Buffer` or an `ArrayBuffer` depending on the [method used](#api).
+If the stream errors, the returned promise will be rejected with the `error`. Any contents already read from the stream will be set to `error.bufferedData`, which is a `string`, a `Buffer`, an `ArrayBuffer` or an array depending on the [method used](#api).
 
 ```js
 import getStream from 'get-stream';
@@ -162,7 +175,7 @@ console.log(await getStream(readableStream.pipeThrough(textDecoderStream)));
 
 ### How is this different from [`concat-stream`](https://github.com/maxogden/concat-stream)?
 
-This module accepts a stream instead of being one and returns a promise instead of using a callback. The API is simpler and it only supports returning a string, `Buffer` or an `ArrayBuffer`. It doesn't have a fragile type inference. You explicitly choose what you want. And it doesn't depend on the huge `readable-stream` package.
+This module accepts a stream instead of being one and returns a promise instead of using a callback. The API is simpler and it only supports returning a string, `Buffer`, an `ArrayBuffer` or an array. It doesn't have a fragile type inference. You explicitly choose what you want. And it doesn't depend on the huge `readable-stream` package.
 
 ## Related
 

@@ -6,6 +6,10 @@ export class MaxBufferError extends Error {
 	}
 }
 
+export async function getStreamAsArray(stream, options) {
+	return getStreamContents(stream, chunkTypes.array, options);
+}
+
 export async function getStreamAsBuffer(stream, options) {
 	if (!('Buffer' in globalThis)) {
 		throw new Error('getStreamAsBuffer() is only supported in Node.js');
@@ -128,6 +132,8 @@ const throwObjectStream = chunk => {
 	throw new Error(`Streams in object mode are not supported: ${String(chunk)}`);
 };
 
+const increment = () => 1;
+
 const getLengthProp = convertedChunk => convertedChunk.length;
 
 // eslint-disable-next-line n/prefer-global/buffer
@@ -163,6 +169,18 @@ const useTextDecoder = (chunk, textDecoder) => textDecoder.decode(chunk, {stream
 const getContentsAsString = (chunks, textDecoder) => `${chunks.join('')}${textDecoder.decode()}`;
 
 const chunkTypes = {
+	array: {
+		convertChunk: {
+			string: identity,
+			buffer: identity,
+			arrayBuffer: identity,
+			dataView: identity,
+			typedArray: identity,
+			others: identity,
+		},
+		getSize: increment,
+		getContents: identity,
+	},
 	buffer: {
 		convertChunk: {
 			string: useBufferFrom,
