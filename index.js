@@ -56,9 +56,9 @@ const getStreamContents = async (stream, {init, convertChunk, getSize, addChunk,
 				throw new MaxBufferError();
 			}
 
-			const previousLength = length;
-			length += chunkSize;
-			contents = addChunk(convertedChunk, contents, length, previousLength);
+			const newLength = length + chunkSize;
+			contents = addChunk(convertedChunk, contents, newLength, length);
+			length = newLength;
 		}
 
 		return finalize(contents, length, textDecoder);
