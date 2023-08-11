@@ -216,6 +216,22 @@ const stream = fs.createReadStream('unicorn.txt');
 console.log(new Blob([await getStreamAsArrayBuffer(stream)]));
 ```
 
+### JSON streaming
+
+[`getStreamAsArray()`](#getstreamasarraystream-options) can be combined with JSON streaming utilities to parse JSON incrementally.
+
+```js
+import {compose} from 'node:stream';
+import {getStreamAsArray} from 'get-stream';
+import streamJson from 'stream-json';
+import streamJsonArray from 'stream-json/streamers/StreamArray.js';
+
+const stream = fs.createReadStream('big-array-of-objects.json', {encoding: 'utf8'});
+console.log(await getStreamAsArray(
+	compose(stream, streamJson.parser(), streamJsonArray.streamArray()),
+));
+```
+
 ## Benchmarks
 
 ### Node.js stream (100 MB, binary)
