@@ -387,9 +387,6 @@ if (!nodeVersion.startsWith('v16.')) {
 	});
 
 	test('can use TextDecoderStream', async t => {
-		// eslint-disable-next-line no-warning-comments
-		// TODO: Remove the following comment when dropping support for Node 16
-		// eslint-disable-next-line no-undef
 		const textDecoderStream = new TextDecoderStream('utf-16le');
 		const result = await getStream(
 			createReadableStream(fixtureUtf16).pipeThrough(textDecoderStream),
