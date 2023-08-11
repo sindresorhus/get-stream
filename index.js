@@ -178,8 +178,9 @@ const SCALE_FACTOR = 2;
 
 const finalizeArrayBuffer = ({buffer}, length) => hasArrayBufferResize() ? buffer : buffer.slice(0, length);
 
-// TODO: `ArrayBuffer.slice()` is slow. When `ArrayBuffer.resize()` is available
+// `ArrayBuffer.slice()` is slow. When `ArrayBuffer.resize()` is available
 // (Node >=20.0.0, Safari >=16.4 and Chrome), we can use it instead.
+// TODO: remove after dropping support for Node 20.
 const hasArrayBufferResize = () => 'resize' in ArrayBuffer.prototype;
 
 const initString = () => '';
