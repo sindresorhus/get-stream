@@ -16,6 +16,7 @@
 		"node": ">=16"
 	},
 	"scripts": {
+		"benchmark": "node benchmarks/index.js",
 		"test": "xo && ava && tsd"
 	},
 	"files": [
@@ -41,6 +42,7 @@
 	"devDependencies": {
 		"@types/node": "^20.2.4",
 		"ava": "^5.3.0",
+		"precise-now": "^2.0.0",
 		"tsd": "^0.28.1",
 		"xo": "^0.54.2"
 	}
