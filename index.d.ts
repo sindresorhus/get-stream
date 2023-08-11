@@ -64,11 +64,11 @@ console.log(await getStream(readableStream));
 
 @example
 ```
-import {opendir} from 'node:fs/promises'
+import {opendir} from 'node:fs/promises';
 import {getStreamAsArray} from 'get-stream';
 
 const asyncIterable = await opendir(directory);
-console.log(await getStreamAsArray(AsyncIterable));
+console.log(await getStreamAsArray(asyncIterable));
 ```
 */
 export default function getStream(stream: AnyStream, options?: Options): Promise<string>;
