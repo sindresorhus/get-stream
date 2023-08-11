@@ -137,7 +137,7 @@ const useUint8ArrayWithOffset = chunk => new Uint8Array(chunk.buffer, chunk.byte
 
 // `contents` is an increasingly growing `Uint8Array`.
 const addArrayBufferChunk = (convertedChunk, contents, length, previousLength) => {
-	const newContents = hasArrayBufferResize() ? resizeArrayBufferFast(contents, length) : resizeArrayBuffer(contents, length);
+	const newContents = hasArrayBufferResize() ? resizeArrayBuffer(contents, length) : resizeArrayBufferSlow(contents, length);
 	newContents.set(convertedChunk, previousLength);
 	return newContents;
 };
@@ -145,7 +145,7 @@ const addArrayBufferChunk = (convertedChunk, contents, length, previousLength) =
 // Without `ArrayBuffer.resize()`, `contents` size is always a power of 2.
 // This means its last bytes are zeroes (not stream data), which need to be
 // trimmed at the end with `ArrayBuffer.slice()`.
-const resizeArrayBuffer = (contents, length) => {
+const resizeArrayBufferSlow = (contents, length) => {
 	if (length <= contents.length) {
 		return contents;
 	}
@@ -159,7 +159,7 @@ const resizeArrayBuffer = (contents, length) => {
 // the stream data. It does not include extraneous zeroes to trim at the end.
 // The underlying `ArrayBuffer` does allocate a number of bytes that is a power
 // of 2, but those bytes are only visible after calling `ArrayBuffer.resize()`.
-const resizeArrayBufferFast = (contents, length) => {
+const resizeArrayBuffer = (contents, length) => {
 	if (length <= contents.buffer.maxByteLength) {
 		contents.buffer.resize(length);
 		return new Uint8Array(contents.buffer, 0, length);
