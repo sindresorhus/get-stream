@@ -21,6 +21,16 @@ const fixtureMultibyteBuffer = Buffer.from(fixtureMultibyteString);
 const fixtureMultibyteUint16Array = new Uint16Array([0, 0]);
 const fixtureArray = [{}];
 
+const fixtureMultiString = [...fixtureString];
+const fixtureMultiBytes = [...fixtureBuffer];
+const fixtureMultiBuffer = fixtureMultiBytes.map(byte => Buffer.from([byte]));
+const fixtureMultiTypedArray = fixtureMultiBytes.map(byte => new Uint8Array([byte]));
+const fixtureMultiArrayBuffer = fixtureMultiTypedArray.map(({buffer}) => buffer);
+const fixtureMultiUint16Array = Array.from({length: fixtureMultiBytes.length / 2}, (_, index) =>
+	new Uint16Array([((2 ** 8) * fixtureMultiBytes[(index * 2) + 1]) + fixtureMultiBytes[index * 2]]),
+);
+const fixtureMultiDataView = fixtureMultiArrayBuffer.map(arrayBuffer => new DataView(arrayBuffer));
+
 const fixtureStringWide = `  ${fixtureString}  `;
 const fixtureTypedArrayWide = new TextEncoder().encode(fixtureStringWide);
 const fixtureArrayBufferWide = fixtureTypedArrayWide.buffer;
@@ -62,77 +72,103 @@ const createStream = streamDef => {
 
 const createReadableStream = streamDef => Duplex.toWeb(Duplex.from(streamDef)).readable;
 
-const getStreamToString = async (t, inputStream) => {
-	const result = await setup([inputStream]);
+const getStreamToString = async (t, fixtureValue) => {
+	const result = await setup(fixtureValue);
 	t.is(typeof result, 'string');
 	t.is(result, fixtureString);
 };
 
-test('get stream from string to string', getStreamToString, fixtureString);
-test('get stream from buffer to string', getStreamToString, fixtureBuffer);
-test('get stream from arrayBuffer to string', getStreamToString, fixtureArrayBuffer);
-test('get stream from typedArray to string', getStreamToString, fixtureTypedArray);
-test('get stream from typedArray with offset to string', getStreamToString, fixtureTypedArrayWithOffset);
-test('get stream from uint16Array to string', getStreamToString, fixtureUint16Array);
-test('get stream from uint16Array with offset to string', getStreamToString, fixtureUint16ArrayWithOffset);
-test('get stream from dataView to string', getStreamToString, fixtureDataView);
-test('get stream from dataView with offset to string', getStreamToString, fixtureDataViewWithOffset);
+test('get stream from string to string, with a single chunk', getStreamToString, [fixtureString]);
+test('get stream from buffer to string, with a single chunk', getStreamToString, [fixtureBuffer]);
+test('get stream from arrayBuffer to string, with a single chunk', getStreamToString, [fixtureArrayBuffer]);
+test('get stream from typedArray to string, with a single chunk', getStreamToString, [fixtureTypedArray]);
+test('get stream from typedArray with offset to string, with a single chunk', getStreamToString, [fixtureTypedArrayWithOffset]);
+test('get stream from uint16Array to string, with a single chunk', getStreamToString, [fixtureUint16Array]);
+test('get stream from uint16Array with offset to string, with a single chunk', getStreamToString, [fixtureUint16ArrayWithOffset]);
+test('get stream from dataView to string, with a single chunk', getStreamToString, [fixtureDataView]);
+test('get stream from dataView with offset to string, with a single chunk', getStreamToString, [fixtureDataViewWithOffset]);
 
-const getStreamToBuffer = async (t, inputStream) => {
-	const result = await setupBuffer([inputStream]);
+test('get stream from string to string, with multiple chunks', getStreamToString, fixtureMultiString);
+test('get stream from buffer to string, with multiple chunks', getStreamToString, fixtureMultiBuffer);
+test('get stream from arrayBuffer to string, with multiple chunks', getStreamToString, fixtureMultiArrayBuffer);
+test('get stream from typedArray to string, with multiple chunks', getStreamToString, fixtureMultiTypedArray);
+test('get stream from uint16Array to string, with multiple chunks', getStreamToString, fixtureMultiUint16Array);
+test('get stream from dataView to string, with multiple chunks', getStreamToString, fixtureMultiDataView);
+
+const getStreamToBuffer = async (t, fixtureValue) => {
+	const result = await setupBuffer(fixtureValue);
 	t.true(Buffer.isBuffer(result));
 	t.true(result.equals(fixtureBuffer));
 };
 
-test('get stream from string to buffer', getStreamToBuffer, fixtureString);
-test('get stream from buffer to buffer', getStreamToBuffer, fixtureBuffer);
-test('get stream from arrayBuffer to buffer', getStreamToBuffer, fixtureArrayBuffer);
-test('get stream from typedArray to buffer', getStreamToBuffer, fixtureTypedArray);
-test('get stream from typedArray with offset to buffer', getStreamToBuffer, fixtureTypedArrayWithOffset);
-test('get stream from uint16Array to buffer', getStreamToBuffer, fixtureUint16Array);
-test('get stream from uint16Array with offset to buffer', getStreamToBuffer, fixtureUint16ArrayWithOffset);
-test('get stream from dataView to buffer', getStreamToBuffer, fixtureDataView);
-test('get stream from dataView with offset to buffer', getStreamToBuffer, fixtureDataViewWithOffset);
+test('get stream from string to buffer, with a single chunk', getStreamToBuffer, [fixtureString]);
+test('get stream from buffer to buffer, with a single chunk', getStreamToBuffer, [fixtureBuffer]);
+test('get stream from arrayBuffer to buffer, with a single chunk', getStreamToBuffer, [fixtureArrayBuffer]);
+test('get stream from typedArray to buffer, with a single chunk', getStreamToBuffer, [fixtureTypedArray]);
+test('get stream from typedArray with offset to buffer, with a single chunk', getStreamToBuffer, [fixtureTypedArrayWithOffset]);
+test('get stream from uint16Array to buffer, with a single chunk', getStreamToBuffer, [fixtureUint16Array]);
+test('get stream from uint16Array with offset to buffer, with a single chunk', getStreamToBuffer, [fixtureUint16ArrayWithOffset]);
+test('get stream from dataView to buffer, with a single chunk', getStreamToBuffer, [fixtureDataView]);
+test('get stream from dataView with offset to buffer, with a single chunk', getStreamToBuffer, [fixtureDataViewWithOffset]);
 
-const getStreamToArrayBuffer = async (t, inputStream) => {
-	const result = await setupArrayBuffer([inputStream]);
+test('get stream from string to buffer, with multiple chunks', getStreamToBuffer, fixtureMultiString);
+test('get stream from buffer to buffer, with multiple chunks', getStreamToBuffer, fixtureMultiBuffer);
+test('get stream from arrayBuffer to buffer, with multiple chunks', getStreamToBuffer, fixtureMultiArrayBuffer);
+test('get stream from typedArray to buffer, with multiple chunks', getStreamToBuffer, fixtureMultiTypedArray);
+test('get stream from uint16Array to buffer, with multiple chunks', getStreamToBuffer, fixtureMultiUint16Array);
+test('get stream from dataView to buffer, with multiple chunks', getStreamToBuffer, fixtureMultiDataView);
+
+const getStreamToArrayBuffer = async (t, fixtureValue) => {
+	const result = await setupArrayBuffer(fixtureValue);
 	t.true(result instanceof ArrayBuffer);
 	t.true(Buffer.from(result).equals(fixtureBuffer));
 };
 
-test('get stream from string to arrayBuffer', getStreamToArrayBuffer, fixtureString);
-test('get stream from buffer to arrayBuffer', getStreamToArrayBuffer, fixtureBuffer);
-test('get stream from arrayBuffer to arrayBuffer', getStreamToArrayBuffer, fixtureArrayBuffer);
-test('get stream from typedArray to arrayBuffer', getStreamToArrayBuffer, fixtureTypedArray);
-test('get stream from typedArray with offset to arrayBuffer', getStreamToArrayBuffer, fixtureTypedArrayWithOffset);
-test('get stream from uint16Array to arrayBuffer', getStreamToArrayBuffer, fixtureUint16Array);
-test('get stream from uint16Array with offset to arrayBuffer', getStreamToArrayBuffer, fixtureUint16ArrayWithOffset);
-test('get stream from dataView to arrayBuffer', getStreamToArrayBuffer, fixtureDataView);
-test('get stream from dataView with offset to arrayBuffer', getStreamToArrayBuffer, fixtureDataViewWithOffset);
+test('get stream from string to arrayBuffer, with a single chunk', getStreamToArrayBuffer, [fixtureString]);
+test('get stream from buffer to arrayBuffer, with a single chunk', getStreamToArrayBuffer, [fixtureBuffer]);
+test('get stream from arrayBuffer to arrayBuffer, with a single chunk', getStreamToArrayBuffer, [fixtureArrayBuffer]);
+test('get stream from typedArray to arrayBuffer, with a single chunk', getStreamToArrayBuffer, [fixtureTypedArray]);
+test('get stream from typedArray with offset to arrayBuffer, with a single chunk', getStreamToArrayBuffer, [fixtureTypedArrayWithOffset]);
+test('get stream from uint16Array to arrayBuffer, with a single chunk', getStreamToArrayBuffer, [fixtureUint16Array]);
+test('get stream from uint16Array with offset to arrayBuffer, with a single chunk', getStreamToArrayBuffer, [fixtureUint16ArrayWithOffset]);
+test('get stream from dataView to arrayBuffer, with a single chunk', getStreamToArrayBuffer, [fixtureDataView]);
+test('get stream from dataView with offset to arrayBuffer, with a single chunk', getStreamToArrayBuffer, [fixtureDataViewWithOffset]);
+
+test('get stream from string to arrayBuffer, with multiple chunks', getStreamToArrayBuffer, fixtureMultiString);
+test('get stream from buffer to arrayBuffer, with multiple chunks', getStreamToArrayBuffer, fixtureMultiBuffer);
+test('get stream from arrayBuffer to arrayBuffer, with multiple chunks', getStreamToArrayBuffer, fixtureMultiArrayBuffer);
+test('get stream from typedArray to arrayBuffer, with multiple chunks', getStreamToArrayBuffer, fixtureMultiTypedArray);
+test('get stream from uint16Array to arrayBuffer, with multiple chunks', getStreamToArrayBuffer, fixtureMultiUint16Array);
+test('get stream from dataView to arrayBuffer, with multiple chunks', getStreamToArrayBuffer, fixtureMultiDataView);
 
 const getStreamToArray = async (t, fixtureValue) => {
-	const result = await setupArray([fixtureValue]);
-	t.true(Array.isArray(result));
-	t.is(result.length, 1);
-	t.is(result[0], fixtureValue);
+	const result = await setupArray(fixtureValue);
+	t.deepEqual(result, fixtureValue);
 };
 
-test('get stream from string to array', getStreamToArray, fixtureString);
-test('get stream from buffer to array', getStreamToArray, fixtureBuffer);
-test('get stream from arrayBuffer to array', getStreamToArray, fixtureArrayBuffer);
-test('get stream from typedArray to array', getStreamToArray, fixtureTypedArray);
-test('get stream from typedArray with offset to array', getStreamToArray, fixtureTypedArrayWithOffset);
-test('get stream from uint16Array to array', getStreamToArray, fixtureUint16Array);
-test('get stream from uint16Array with offset to array', getStreamToArray, fixtureUint16ArrayWithOffset);
-test('get stream from dataView to array', getStreamToArray, fixtureDataView);
-test('get stream from dataView with offset to array', getStreamToArray, fixtureDataViewWithOffset);
+test('get stream from string to array, with a single chunk', getStreamToArray, [fixtureString]);
+test('get stream from buffer to array, with a single chunk', getStreamToArray, [fixtureBuffer]);
+test('get stream from arrayBuffer to array, with a single chunk', getStreamToArray, [fixtureArrayBuffer]);
+test('get stream from typedArray to array, with a single chunk', getStreamToArray, [fixtureTypedArray]);
+test('get stream from typedArray with offset to array, with a single chunk', getStreamToArray, [fixtureTypedArrayWithOffset]);
+test('get stream from uint16Array to array, with a single chunk', getStreamToArray, [fixtureUint16Array]);
+test('get stream from uint16Array with offset to array, with a single chunk', getStreamToArray, [fixtureUint16ArrayWithOffset]);
+test('get stream from dataView to array, with a single chunk', getStreamToArray, [fixtureDataView]);
+test('get stream from dataView with offset to array, with a single chunk', getStreamToArray, [fixtureDataViewWithOffset]);
 
-const throwOnInvalidChunkType = async (t, setupFunction, inputStream) => {
-	await t.throwsAsync(setupFunction([inputStream]), {message: /not supported/});
+test('get stream from string to array, with multiple chunks', getStreamToArray, fixtureMultiString);
+test('get stream from buffer to array, with multiple chunks', getStreamToArray, fixtureMultiBuffer);
+test('get stream from arrayBuffer to array, with multiple chunks', getStreamToArray, fixtureMultiArrayBuffer);
+test('get stream from typedArray to array, with multiple chunks', getStreamToArray, fixtureMultiTypedArray);
+test('get stream from uint16Array to array, with multiple chunks', getStreamToArray, fixtureMultiUint16Array);
+test('get stream from dataView to array, with multiple chunks', getStreamToArray, fixtureMultiDataView);
+
+const throwOnInvalidChunkType = async (t, setupFunction, fixtureValue) => {
+	await t.throwsAsync(setupFunction([fixtureValue]), {message: /not supported/});
 };
 
-const allowsAnyChunkType = async (t, setupFunction, inputStream) => {
-	await t.notThrowsAsync(setupFunction([inputStream]));
+const allowsAnyChunkType = async (t, setupFunction, fixtureValue) => {
+	await t.notThrowsAsync(setupFunction([fixtureValue]));
 };
 
 test('get stream from object to string', throwOnInvalidChunkType, setup, {});
@@ -215,8 +251,10 @@ test('maxBuffer unit is bytes with getStreamAsArrayBuffer()', checkMaxBuffer, se
 test('maxBuffer unit is each array element with getStreamAsArray()', checkMaxBuffer, setupArray, longArray, fixtureArray, fixtureArray.length);
 
 test('set error.bufferedData when `maxBuffer` is hit', async t => {
-	const error = await t.throwsAsync(setup([longString], {maxBuffer: fixtureLength}), {instanceOf: MaxBufferError});
-	t.is(error.bufferedData, longString);
+	const maxBuffer = fixtureLength - 1;
+	const {bufferedData} = await t.throwsAsync(setupBuffer([...fixtureString], {maxBuffer}), {instanceOf: MaxBufferError});
+	t.true(fixtureString.startsWith(bufferedData.toString()));
+	t.true(bufferedData.length <= maxBuffer);
 });
 
 const errorStream = async function * () {
