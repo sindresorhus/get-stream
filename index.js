@@ -180,6 +180,7 @@ const finalizeArrayBuffer = ({buffer}, length) => hasArrayBufferResize() ? buffe
 
 // `ArrayBuffer.slice()` is slow. When `ArrayBuffer.resize()` is available
 // (Node >=20.0.0, Safari >=16.4 and Chrome), we can use it instead.
+// eslint-disable-next-line no-warning-comments
 // TODO: remove after dropping support for Node 20.
 const hasArrayBufferResize = () => 'resize' in ArrayBuffer.prototype;
 
