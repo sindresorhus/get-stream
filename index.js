@@ -182,6 +182,8 @@ const finalizeArrayBuffer = ({buffer}, length) => hasArrayBufferResize() ? buffe
 // (Node >=20.0.0, Safari >=16.4 and Chrome), we can use it instead.
 // eslint-disable-next-line no-warning-comments
 // TODO: remove after dropping support for Node 20.
+// eslint-disable-next-line no-warning-comments
+// TODO: use `ArrayBuffer.transferToFixedLength()` instead once it is available
 const hasArrayBufferResize = () => 'resize' in ArrayBuffer.prototype;
 
 const initString = () => '';
