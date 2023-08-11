@@ -5,7 +5,7 @@ import {createReadStream} from 'node:fs';
 import {open} from 'node:fs/promises';
 import {version as nodeVersion, env} from 'node:process';
 import {Duplex} from 'node:stream';
-import {text, buffer} from 'node:stream/consumers';
+import {text, buffer, arrayBuffer} from 'node:stream/consumers';
 import test from 'ava';
 import getStream, {getStreamAsBuffer, getStreamAsArrayBuffer, getStreamAsArray, MaxBufferError} from './index.js';
 
@@ -39,6 +39,11 @@ const longMultibyteString = `${fixtureMultibyteString}\u1000`;
 const longMultibyteBuffer = Buffer.from(longMultibyteString);
 const longMultibyteUint16Array = new Uint16Array([0, 0, 0]);
 const longArray = [...fixtureArray, {}];
+
+const bigArray = Array.from({length: 1e6}, () => Math.floor(Math.random() * (2 ** 8)));
+const bigBuffer = Buffer.from(bigArray);
+const bigString = bigBuffer.toString();
+const bigArrayBuffer = bigBuffer.buffer;
 
 const TEST_URL = 'https://nodejs.org/dist/index.json';
 
@@ -360,12 +365,36 @@ if (!nodeVersion.startsWith('v16.')) {
 	});
 }
 
-test('native string', async t => {
-	const result = await text(createStream(fixtureString));
-	t.is(result, fixtureString);
+// The following tests take lots of memory, which can make the process crash
+// without `test.serial()`
+test.serial('getStream() behaves like text()', async t => {
+	const [nativeResult, customResult] = await Promise.all([
+		text(createStream([bigString])),
+		setup([bigString]),
+	]);
+	t.is(nativeResult, customResult);
 });
 
-test('native buffer', async t => {
-	const result = await buffer(createStream(fixtureString));
-	t.true(result.equals(fixtureBuffer));
+test.serial('getStreamAsBuffer() behaves like buffer()', async t => {
+	const [nativeResult, customResult] = await Promise.all([
+		buffer(createStream([bigBuffer])),
+		setupBuffer([bigBuffer]),
+	]);
+	t.deepEqual(nativeResult, customResult);
+});
+
+test.serial('getStreamAsArrayBuffer() behaves like arrayBuffer()', async t => {
+	const [nativeResult, customResult] = await Promise.all([
+		arrayBuffer(createStream([bigArrayBuffer])),
+		setupArrayBuffer([bigArrayBuffer]),
+	]);
+	t.deepEqual(nativeResult, customResult);
+});
+
+test.serial('getStreamAsArray() behaves like readable.toArray()', async t => {
+	const [nativeResult, customResult] = await Promise.all([
+		createStream([bigArray]).toArray(),
+		setupArray([bigArray]),
+	]);
+	t.deepEqual(nativeResult, customResult);
 });
