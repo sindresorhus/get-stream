@@ -1,11 +1,11 @@
-import {Buffer, constants as BufferConstants} from 'node:buffer';
+import {Buffer, constants as BufferConstants, Blob} from 'node:buffer';
 import {setTimeout} from 'node:timers/promises';
 import {spawn} from 'node:child_process';
 import {createReadStream} from 'node:fs';
 import {open} from 'node:fs/promises';
 import {version as nodeVersion} from 'node:process';
 import {Duplex} from 'node:stream';
-import {text, buffer, arrayBuffer} from 'node:stream/consumers';
+import {text, buffer, arrayBuffer, blob} from 'node:stream/consumers';
 import test from 'ava';
 import getStream, {getStreamAsBuffer, getStreamAsArrayBuffer, getStreamAsArray, MaxBufferError} from './index.js';
 
@@ -419,6 +419,14 @@ test.serial('getStreamAsArrayBuffer() behaves like arrayBuffer()', async t => {
 		setupArrayBuffer([bigArrayBuffer]),
 	]);
 	t.deepEqual(nativeResult, customResult);
+});
+
+test.serial('getStreamAsArrayBuffer() can behave like blob()', async t => {
+	const [nativeResult, customResult] = await Promise.all([
+		blob(createStream([bigArrayBuffer])),
+		setupArrayBuffer([bigArrayBuffer]),
+	]);
+	t.deepEqual(nativeResult, new Blob([customResult]));
 });
 
 test.serial('getStreamAsArray() behaves like readable.toArray()', async t => {
