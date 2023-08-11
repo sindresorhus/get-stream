@@ -62,11 +62,11 @@ console.log(await getStream(readableStream));
 ### Async iterables
 
 ```js
-import {opendir} from 'node:fs/promises'
+import {opendir} from 'node:fs/promises';
 import {getStreamAsArray} from 'get-stream';
 
 const asyncIterable = await opendir(directory);
-console.log(await getStreamAsArray(AsyncIterable));
+console.log(await getStreamAsArray(asyncIterable));
 ```
 
 ## API
