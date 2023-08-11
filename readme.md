@@ -6,6 +6,7 @@
 
 - Works in any JavaScript environment ([Node.js](#nodejs-streams), [browsers](#web-streams), etc.).
 - Supports [text streams](#getstreamstream-options), [binary streams](#getstreamasbufferstream-options) and [object streams](#getstreamasarraystream-options).
+- Supports [async iterables](#async-iterables).
 - Can set a [maximum stream size](#maxbuffer).
 - Returns [partially read data](#errors) when the stream errors.
 
@@ -52,8 +53,20 @@ console.log(await getStream(stream));
 ### Web streams
 
 ```js
+import getStream from 'get-stream';
+
 const {body: readableStream} = await fetch('https://example.com');
 console.log(await getStream(readableStream));
+```
+
+### Async iterables
+
+```js
+import {opendir} from 'node:fs/promises';
+import {getStreamAsArray} from 'get-stream';
+
+const asyncIterable = await opendir(directory);
+console.log(await getStreamAsArray(asyncIterable));
 ```
 
 ## API

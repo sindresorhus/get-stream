@@ -2,7 +2,7 @@ import {Buffer, constants as BufferConstants} from 'node:buffer';
 import {setTimeout} from 'node:timers/promises';
 import {spawn} from 'node:child_process';
 import {createReadStream} from 'node:fs';
-import {open} from 'node:fs/promises';
+import {open, opendir} from 'node:fs/promises';
 import {version as nodeVersion} from 'node:process';
 import {Duplex} from 'node:stream';
 import {text, buffer, arrayBuffer} from 'node:stream/consumers';
@@ -333,6 +333,23 @@ test('Throws if the first argument is undefined', firstArgumentCheck, undefined)
 test('Throws if the first argument is null', firstArgumentCheck, null);
 test('Throws if the first argument is a string', firstArgumentCheck, '');
 test('Throws if the first argument is an array', firstArgumentCheck, []);
+
+const generator = async function * () {
+	yield 'a';
+	await setTimeout(0);
+	yield 'b';
+};
+
+test('works with async iterable', async t => {
+	const result = await getStream(generator());
+	t.is(result, 'ab');
+});
+
+test('works with opendir()', async t => {
+	const directoryFiles = await opendir('.');
+	const entries = await getStreamAsArray(directoryFiles);
+	t.true(entries.some(({name}) => name === 'package.json'));
+});
 
 test('works with createReadStream() and buffers', async t => {
 	const result = await getStreamAsBuffer(createReadStream('fixture'));

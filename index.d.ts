@@ -56,8 +56,19 @@ console.log(await getStream(stream));
 
 @example
 ```
+import getStream from 'get-stream';
+
 const {body: readableStream} = await fetch('https://example.com');
 console.log(await getStream(readableStream));
+```
+
+@example
+```
+import {opendir} from 'node:fs/promises';
+import {getStreamAsArray} from 'get-stream';
+
+const asyncIterable = await opendir(directory);
+console.log(await getStreamAsArray(asyncIterable));
 ```
 */
 export default function getStream(stream: AnyStream, options?: Options): Promise<string>;
