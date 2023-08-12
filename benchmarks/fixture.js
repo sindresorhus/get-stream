@@ -12,4 +12,4 @@ export const deleteFixture = async () => {
 export const FIXTURE_FILE = 'benchmark_fixture';
 
 const FIXTURE_BYTE_SIZE = 1e8;
-export const FIXTURE_HUMAN_SIZE = `${FIXTURE_BYTE_SIZE / 1e6}MB`;
+export const FIXTURE_HUMAN_SIZE = `${FIXTURE_BYTE_SIZE / 1e6} MB`;
