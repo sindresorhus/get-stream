@@ -143,28 +143,48 @@ try {
 
 ## Tips
 
-### `node:stream/consumers`
+### Alternatives
 
-If you do not need [`maxBuffer`](#maxbuffer), [`error.bufferedData`](#errors) nor browser support, you can use [`node:stream/consumers`](https://nodejs.org/api/webstreams.html#utility-consumers) instead of this package.
+If you do not need the [`maxBuffer`](#maxbuffer) option, [`error.bufferedData`](#errors), nor browser support, you can use the following methods instead of this package.
+
+#### [`streamConsumers.text()`](https://nodejs.org/api/webstreams.html#streamconsumerstextstream)
 
 ```js
 import fs from 'node:fs';
-import {text, buffer, arrayBuffer} from 'node:stream/consumers';
+import {text} from 'node:stream/consumers';
 
 const stream = fs.createReadStream('unicorn.txt', {encoding: 'utf8'});
 console.log(await text(stream))
 ```
 
-or:
+#### [`streamConsumers.buffer()`](https://nodejs.org/api/webstreams.html#streamconsumersbufferstream)
 
 ```js
+import {buffer} from 'node:stream/consumers';
+
 console.log(await buffer(stream))
 ```
 
-or:
+#### [`streamConsumers.arrayBuffer()`](https://nodejs.org/api/webstreams.html#streamconsumersarraybufferstream)
 
 ```js
+import {arrayBuffer} from 'node:stream/consumers';
+
 console.log(await arrayBuffer(stream))
+```
+
+#### [`readable.toArray()`](https://nodejs.org/api/stream.html#readabletoarrayoptions)
+
+```js
+console.log(await stream.toArray())
+```
+
+#### [`Array.fromAsync()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/fromAsync)
+
+If your [environment supports it](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/fromAsync#browser_compatibility):
+
+```js
+console.log(await Array.fromAsync(stream))
 ```
 
 ### Non-UTF-8 encoding
