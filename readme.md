@@ -221,12 +221,13 @@ console.log(new Blob([await getStreamAsArrayBuffer(stream)]));
 [`getStreamAsArray()`](#getstreamasarraystream-options) can be combined with JSON streaming utilities to parse JSON incrementally.
 
 ```js
+import fs from 'node:fs';
 import {compose as composeStreams} from 'node:stream';
 import {getStreamAsArray} from 'get-stream';
 import streamJson from 'stream-json';
 import streamJsonArray from 'stream-json/streamers/StreamArray.js';
 
-const stream = fs.createReadStream('big-array-of-objects.json', {encoding: 'utf8'});
+const stream = fs.createReadStream('big-array-of-objects.json');
 console.log(await getStreamAsArray(
 	composeStreams(stream, streamJson.parser(), streamJsonArray.streamArray()),
 ));
