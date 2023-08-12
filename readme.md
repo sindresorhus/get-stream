@@ -220,45 +220,45 @@ console.log(new Blob([await getStreamAsArrayBuffer(stream)]));
 
 ### Node.js stream (100 MB, binary)
 
-- getStream(): 142ms
-- text(): 139ms
-- getStreamAsBuffer(): 106ms
-- buffer(): 83ms
-- getStreamAsArrayBuffer(): 105ms
-- arrayBuffer(): 81ms
-- getStreamAsArray(): 24ms
-- stream.toArray(): 21ms
+- `getStream()`: 142ms
+- `text()`: 139ms
+- `getStreamAsBuffer()`: 106ms
+- `buffer()`: 83ms
+- `getStreamAsArrayBuffer()`: 105ms
+- `arrayBuffer()`: 81ms
+- `getStreamAsArray()`: 24ms
+- `stream.toArray()`: 21ms
 
 ### Node.js stream (100 MB, text)
 
-- getStream(): 90ms
-- text(): 89ms
-- getStreamAsBuffer(): 127ms
-- buffer(): 192ms
-- getStreamAsArrayBuffer(): 129ms
-- arrayBuffer(): 195ms
-- getStreamAsArray(): 89ms
-- stream.toArray(): 90ms
+- `getStream()`: 90ms
+- `text()`: 89ms
+- `getStreamAsBuffer()`: 127ms
+- `buffer()`: 192ms
+- `getStreamAsArrayBuffer()`: 129ms
+- `arrayBuffer()`: 195ms
+- `getStreamAsArray()`: 89ms
+- `stream.toArray()`: 90ms
 
 ### Web ReadableStream (100 MB, binary)
 
-- getStream(): 223ms
-- text(): 221ms
-- getStreamAsBuffer(): 182ms
-- buffer(): 153ms
-- getStreamAsArrayBuffer(): 171ms
-- arrayBuffer(): 155ms
-- getStreamAsArray(): 83ms
+- `getStream()`: 223ms
+- `text()`: 221ms
+- `getStreamAsBuffer()`: 182ms
+- `buffer()`: 153ms
+- `getStreamAsArrayBuffer()`: 171ms
+- `arrayBuffer()`: 155ms
+- `getStreamAsArray()`: 83ms
 
 ### Web ReadableStream (100 MB, text)
 
-- getStream(): 141ms
-- text(): 139ms
-- getStreamAsBuffer(): 91ms
-- buffer(): 80ms
-- getStreamAsArrayBuffer(): 89ms
-- arrayBuffer(): 81ms
-- getStreamAsArray(): 21ms
+- `getStream()`: 141ms
+- `text()`: 139ms
+- `getStreamAsBuffer()`: 91ms
+- `buffer()`: 80ms
+- `getStreamAsArrayBuffer()`: 89ms
+- `arrayBuffer()`: 81ms
+- `getStreamAsArray()`: 21ms
 
 [Benchmarks' source file](benchmarks/index.js).
 

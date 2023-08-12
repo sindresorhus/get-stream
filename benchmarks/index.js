@@ -11,7 +11,7 @@ const logHeader = header => {
 };
 
 const logResult = async (name, createStream, task) => {
-	console.log(`- ${name}(): ${await measureTask(createStream, task)}ms`);
+	console.log(`- \`${name}()\`: ${await measureTask(createStream, task)}ms`);
 };
 
 try {
