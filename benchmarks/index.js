@@ -1,24 +1,44 @@
+import {text, buffer, arrayBuffer} from 'node:stream/consumers';
+import getStream, {getStreamAsBuffer, getStreamAsArrayBuffer, getStreamAsArray} from '../index.js';
 import {createFixture, deleteFixture, FIXTURE_HUMAN_SIZE} from './fixture.js';
 import {createNodeStreamBinary, createNodeStreamText, createWebStreamBinary, createWebStreamText} from './stream.js';
-import {logHeader, benchmarkNodeStreams, benchmarkStreams} from './log.js';
+import {measureTask} from './measure.js';
 
-await createFixture();
+const runBenchmarks = async () => {
+	await createFixture();
 
-try {
-	logHeader(`Node.js stream (${FIXTURE_HUMAN_SIZE}, binary)`);
-	await benchmarkNodeStreams(createNodeStreamBinary);
+	try {
+		await benchmarkNodeStreams(createNodeStreamBinary, `Node.js stream (${FIXTURE_HUMAN_SIZE}, binary)`);
+		await benchmarkNodeStreams(createNodeStreamText, `Node.js stream (${FIXTURE_HUMAN_SIZE}, text)`);
+		await benchmarkStreams(createWebStreamBinary, `Web ReadableStream (${FIXTURE_HUMAN_SIZE}, binary)`);
+		await benchmarkStreams(createWebStreamText, `Web ReadableStream (${FIXTURE_HUMAN_SIZE}, text)`);
+	} finally {
+		await deleteFixture();
+	}
+};
 
-	console.log('');
-	logHeader(`Node.js stream (${FIXTURE_HUMAN_SIZE}, text)`);
-	await benchmarkNodeStreams(createNodeStreamText);
+const benchmarkNodeStreams = async (createStream, header) => {
+	await benchmarkStreams(createStream, header);
+	await logResult('stream.toArray', createStream, stream => stream.toArray());
+};
 
-	console.log('');
-	logHeader(`Web ReadableStream (${FIXTURE_HUMAN_SIZE}, binary)`);
-	await benchmarkStreams(createWebStreamBinary);
+const benchmarkStreams = async (createStream, header) => {
+	logHeader(header);
+	await logResult('getStream', createStream, getStream);
+	await logResult('text', createStream, text);
+	await logResult('getStreamAsBuffer', createStream, getStreamAsBuffer);
+	await logResult('buffer', createStream, buffer);
+	await logResult('getStreamAsArrayBuffer', createStream, getStreamAsArrayBuffer);
+	await logResult('arrayBuffer', createStream, arrayBuffer);
+	await logResult('getStreamAsArray', createStream, getStreamAsArray);
+};
 
-	console.log('');
-	logHeader(`Web ReadableStream (${FIXTURE_HUMAN_SIZE}, text)`);
-	await benchmarkStreams(createWebStreamText);
-} finally {
-	await deleteFixture();
-}
+const logHeader = header => {
+	console.log(`\n### ${header}\n`);
+};
+
+const logResult = async (name, createStream, task) => {
+	console.log(`- \`${name}()\`: ${await measureTask(createStream, task)}ms`);
+};
+
+await runBenchmarks();
