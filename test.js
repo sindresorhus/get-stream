@@ -4,9 +4,11 @@ import {spawn} from 'node:child_process';
 import {createReadStream} from 'node:fs';
 import {open, opendir} from 'node:fs/promises';
 import {version as nodeVersion} from 'node:process';
-import {Duplex} from 'node:stream';
+import {Duplex, compose} from 'node:stream';
 import {text, buffer, arrayBuffer, blob} from 'node:stream/consumers';
 import test from 'ava';
+import streamJson from 'stream-json';
+import streamJsonArray from 'stream-json/streamers/StreamArray.js';
 import getStream, {getStreamAsBuffer, getStreamAsArrayBuffer, getStreamAsArray, MaxBufferError} from './index.js';
 
 const fixtureString = 'unicorn\n';
@@ -452,4 +454,17 @@ test.serial('getStreamAsArray() behaves like readable.toArray()', async t => {
 		setupArray([bigArray]),
 	]);
 	t.deepEqual(nativeResult, customResult);
+});
+
+test.serial('getStreamAsArray() can stream JSON', async t => {
+	t.timeout(BIG_TEST_DURATION);
+	const bigJson = bigArray.map(byte => ({byte}));
+	const bigJsonString = JSON.stringify(bigJson);
+	const result = await getStreamAsArray(compose(
+		createStream([bigJsonString]),
+		streamJson.parser(),
+		streamJsonArray.streamArray(),
+	));
+	t.is(result.length, bigJson.length);
+	t.deepEqual(result.at(-1).value, bigJson.at(-1));
 });
