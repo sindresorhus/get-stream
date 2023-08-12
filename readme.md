@@ -184,6 +184,17 @@ const {body: readableStream} = await fetch('https://example.com');
 console.log(await getStream(readableStream.pipeThrough(textDecoderStream)));
 ```
 
+### Blobs
+
+[`getStreamAsArrayBuffer()`](#getstreamasarraybufferstream-options) can be used to create [Blobs](https://developer.mozilla.org/en-US/docs/Web/API/Blob).
+
+```js
+import {getStreamAsArrayBuffer} from 'get-stream';
+
+const stream = fs.createReadStream('unicorn.txt');
+console.log(new Blob([await getStreamAsArrayBuffer(stream)]));
+```
+
 ## FAQ
 
 ### How is this different from [`concat-stream`](https://github.com/maxogden/concat-stream)?
