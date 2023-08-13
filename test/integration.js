@@ -4,7 +4,7 @@ import {open, opendir} from 'node:fs/promises';
 import {version as nodeVersion} from 'node:process';
 import {Duplex} from 'node:stream';
 import test from 'ava';
-import getStream, {getStreamAsBuffer, getStreamAsArray} from '../index.js';
+import getStream, {getStreamAsBuffer, getStreamAsArray} from '../source/index.js';
 import {fixtureString, fixtureBuffer, fixtureUtf16} from './fixtures/index.js';
 
 const TEST_URL = 'https://nodejs.org/dist/index.json';

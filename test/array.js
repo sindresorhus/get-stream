@@ -2,7 +2,7 @@ import {compose} from 'node:stream';
 import test from 'ava';
 import streamJson from 'stream-json';
 import streamJsonArray from 'stream-json/streamers/StreamArray.js';
-import {getStreamAsArray, MaxBufferError} from '../index.js';
+import {getStreamAsArray, MaxBufferError} from '../source/index.js';
 import {createStream, BIG_TEST_DURATION} from './helpers/index.js';
 import {
 	fixtureString,

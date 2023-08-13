@@ -1,7 +1,7 @@
 import {Buffer} from 'node:buffer';
 import {buffer} from 'node:stream/consumers';
 import test from 'ava';
-import {getStreamAsBuffer, MaxBufferError} from '../index.js';
+import {getStreamAsBuffer, MaxBufferError} from '../source/index.js';
 import {createStream} from './helpers/index.js';
 import {
 	fixtureString,

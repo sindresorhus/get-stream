@@ -1,7 +1,7 @@
 import {Buffer, constants as BufferConstants, Blob} from 'node:buffer';
 import {arrayBuffer, blob} from 'node:stream/consumers';
 import test from 'ava';
-import {getStreamAsArrayBuffer, MaxBufferError} from '../index.js';
+import {getStreamAsArrayBuffer, MaxBufferError} from '../source/index.js';
 import {createStream, BIG_TEST_DURATION} from './helpers/index.js';
 import {
 	fixtureString,

@@ -11,18 +11,17 @@
 		"url": "https://sindresorhus.com"
 	},
 	"type": "module",
-	"exports": "./index.js",
+	"exports": "./source/index.js",
 	"engines": {
 		"node": ">=16"
 	},
 	"scripts": {
 		"benchmark": "node benchmarks/index.js",
-		"test": "xo && ava && tsd"
+		"test": "xo && ava && tsd --typings=source/index.d.ts --files=source/index.test-d.ts"
 	},
 	"files": [
-		"index.js",
-		"index.d.ts",
-		"lib"
+		"source",
+		"!*.test-d.ts"
 	],
 	"keywords": [
 		"get",

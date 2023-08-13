@@ -1,6 +1,6 @@
 import {setTimeout} from 'node:timers/promises';
 import test from 'ava';
-import getStream, {MaxBufferError} from '../index.js';
+import getStream, {MaxBufferError} from '../source/index.js';
 import {createStream} from './helpers/index.js';
 import {
 	fixtureString,
