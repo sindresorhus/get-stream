@@ -83,3 +83,15 @@ test('getStreamAsBuffer() behaves like buffer()', async t => {
 	]);
 	t.deepEqual(nativeResult, customResult);
 });
+
+/* eslint-disable n/prefer-global/buffer */
+test('getStreamAsBuffer() only works in Node', async t => {
+	const {Buffer} = globalThis;
+	delete globalThis.Buffer;
+	try {
+		await t.throwsAsync(setupBuffer([fixtureString]), {message: /only supported in Node/});
+	} finally {
+		globalThis.Buffer = Buffer;
+	}
+});
+/* eslint-enable n/prefer-global/buffer */
