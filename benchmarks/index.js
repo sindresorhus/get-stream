@@ -1,5 +1,5 @@
 import {text, buffer, arrayBuffer} from 'node:stream/consumers';
-import getStream, {getStreamAsBuffer, getStreamAsArrayBuffer, getStreamAsArray} from '../index.js';
+import getStream, {getStreamAsBuffer, getStreamAsArrayBuffer, getStreamAsArray} from '../source/index.js';
 import {createFixture, deleteFixture, FIXTURE_HUMAN_SIZE} from './fixture.js';
 import {createNodeStreamBinary, createNodeStreamText, createWebStreamBinary, createWebStreamText} from './stream.js';
 import {measureTask} from './measure.js';
