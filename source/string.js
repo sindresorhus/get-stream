@@ -11,6 +11,8 @@ const useTextDecoder = (chunk, {textDecoder}) => textDecoder.decode(chunk, {stre
 
 const addStringChunk = (convertedChunk, {contents}) => contents + convertedChunk;
 
+const truncateStringChunk = (convertedChunk, chunkSize) => convertedChunk.slice(0, chunkSize);
+
 const getFinalStringChunk = ({textDecoder}) => {
 	const finalChunk = textDecoder.decode();
 	return finalChunk === '' ? undefined : finalChunk;
@@ -27,6 +29,7 @@ const stringMethods = {
 		others: throwObjectStream,
 	},
 	getSize: getLengthProp,
+	truncateChunk: truncateStringChunk,
 	addChunk: addStringChunk,
 	getFinalChunk: getFinalStringChunk,
 	finalize: getContentsProp,

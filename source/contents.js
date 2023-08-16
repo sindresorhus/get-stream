@@ -1,4 +1,4 @@
-export const getStreamContents = async (stream, {init, convertChunk, getSize, addChunk, getFinalChunk, finalize}, {maxBuffer = Number.POSITIVE_INFINITY} = {}) => {
+export const getStreamContents = async (stream, {init, convertChunk, getSize, truncateChunk, addChunk, getFinalChunk, finalize}, {maxBuffer = Number.POSITIVE_INFINITY} = {}) => {
 	if (!isAsyncIterable(stream)) {
 		throw new Error('The first argument must be a Readable, a ReadableStream, or an async iterable.');
 	}
@@ -10,10 +10,10 @@ export const getStreamContents = async (stream, {init, convertChunk, getSize, ad
 		for await (const chunk of stream) {
 			const chunkType = getChunkType(chunk);
 			const convertedChunk = convertChunk[chunkType](chunk, state);
-			appendChunk({convertedChunk, state, getSize, addChunk, maxBuffer});
+			appendChunk({convertedChunk, state, getSize, truncateChunk, addChunk, maxBuffer});
 		}
 
-		appendFinalChunk({state, convertChunk, getSize, addChunk, getFinalChunk, maxBuffer});
+		appendFinalChunk({state, convertChunk, getSize, truncateChunk, addChunk, getFinalChunk, maxBuffer});
 		return finalize(state);
 	} catch (error) {
 		error.bufferedData = finalize(state);
@@ -21,21 +21,32 @@ export const getStreamContents = async (stream, {init, convertChunk, getSize, ad
 	}
 };
 
-const appendFinalChunk = ({state, getSize, addChunk, getFinalChunk, maxBuffer}) => {
+const appendFinalChunk = ({state, getSize, truncateChunk, addChunk, getFinalChunk, maxBuffer}) => {
 	const convertedChunk = getFinalChunk(state);
 	if (convertedChunk !== undefined) {
-		appendChunk({convertedChunk, state, getSize, addChunk, maxBuffer});
+		appendChunk({convertedChunk, state, getSize, truncateChunk, addChunk, maxBuffer});
 	}
 };
 
-const appendChunk = ({convertedChunk, state, getSize, addChunk, maxBuffer}) => {
+const appendChunk = ({convertedChunk, state, getSize, truncateChunk, addChunk, maxBuffer}) => {
 	const chunkSize = getSize(convertedChunk);
 	const newLength = state.length + chunkSize;
 
-	if (newLength > maxBuffer) {
-		throw new MaxBufferError();
+	if (newLength <= maxBuffer) {
+		addNewChunk(convertedChunk, state, addChunk, newLength);
+		return;
 	}
 
+	const truncatedChunk = truncateChunk(convertedChunk, maxBuffer - state.length);
+
+	if (truncatedChunk !== undefined) {
+		addNewChunk(truncatedChunk, state, addChunk, maxBuffer);
+	}
+
+	throw new MaxBufferError();
+};
+
+const addNewChunk = (convertedChunk, state, addChunk, newLength) => {
 	state.contents = addChunk(convertedChunk, state, newLength);
 	state.length = newLength;
 };

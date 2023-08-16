@@ -80,6 +80,26 @@ test('maxBuffer throws when size is exceeded with an uint16Array', checkMaxBuffe
 test('maxBuffer throws when size is exceeded with a dataView', checkMaxBuffer, longDataView, fixtureDataView, fixtureLength);
 test('maxBuffer unit is bytes with getStreamAsArrayBuffer()', checkMaxBuffer, longMultibyteUint16Array, fixtureMultibyteUint16Array, fixtureMultibyteUint16Array.byteLength);
 
+const checkBufferedData = async (t, fixtureValue, expectedResult) => {
+	const maxBuffer = expectedResult.byteLength;
+	const {bufferedData} = await t.throwsAsync(setupArrayBuffer(fixtureValue, {maxBuffer}), {instanceOf: MaxBufferError});
+	t.is(bufferedData.byteLength, maxBuffer);
+	t.deepEqual(expectedResult, bufferedData);
+};
+
+test(
+	'set error.bufferedData when `maxBuffer` is hit, with a single chunk',
+	checkBufferedData,
+	[fixtureArrayBuffer],
+	new Uint8Array(Buffer.from(fixtureString[0])).buffer,
+);
+test(
+	'set error.bufferedData when `maxBuffer` is hit, with multiple chunks',
+	checkBufferedData,
+	[fixtureArrayBuffer, fixtureArrayBuffer],
+	new Uint8Array(Buffer.from(`${fixtureString}${fixtureString[0]}`)).buffer,
+);
+
 test('handles streams larger than arrayBuffer max length', async t => {
 	t.timeout(BIG_TEST_DURATION);
 	const chunkCount = Math.floor(BufferConstants.MAX_LENGTH / CHUNK_SIZE * 2);

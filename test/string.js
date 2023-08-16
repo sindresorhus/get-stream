@@ -77,6 +77,26 @@ const checkMaxBuffer = async (t, longValue, shortValue, maxBuffer) => {
 test('maxBuffer throws when size is exceeded with a string', checkMaxBuffer, longString, fixtureString, fixtureLength);
 test('maxBuffer unit is characters with getStream()', checkMaxBuffer, longMultibyteString, fixtureMultibyteString, fixtureMultibyteString.length);
 
+const checkBufferedData = async (t, fixtureValue, expectedResult) => {
+	const maxBuffer = expectedResult.length;
+	const {bufferedData} = await t.throwsAsync(setupString(fixtureValue, {maxBuffer}), {instanceOf: MaxBufferError});
+	t.is(bufferedData.length, maxBuffer);
+	t.is(expectedResult, bufferedData);
+};
+
+test(
+	'set error.bufferedData when `maxBuffer` is hit, with a single chunk',
+	checkBufferedData,
+	[fixtureString],
+	fixtureString[0],
+);
+test(
+	'set error.bufferedData when `maxBuffer` is hit, with multiple chunks',
+	checkBufferedData,
+	[fixtureString, fixtureString],
+	`${fixtureString}${fixtureString[0]}`,
+);
+
 test('handles streams larger than string max length', async t => {
 	t.timeout(BIG_TEST_DURATION);
 	const chunkCount = Math.floor(BufferConstants.MAX_STRING_LENGTH / CHUNK_SIZE * 2);

@@ -25,6 +25,7 @@ const arrayMethods = {
 		others: identity,
 	},
 	getSize: increment,
+	truncateChunk: noop,
 	addChunk: addArrayChunk,
 	getFinalChunk: noop,
 	finalize: getContentsProp,
