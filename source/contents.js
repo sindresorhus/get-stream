@@ -1,32 +1,43 @@
-export const getStreamContents = async (stream, {init, convertChunk, getSize, addChunk, finalize}, {maxBuffer = Number.POSITIVE_INFINITY} = {}) => {
+export const getStreamContents = async (stream, {init, convertChunk, getSize, addChunk, getFinalChunk, finalize}, {maxBuffer = Number.POSITIVE_INFINITY} = {}) => {
 	if (!isAsyncIterable(stream)) {
 		throw new Error('The first argument must be a Readable, a ReadableStream, or an async iterable.');
 	}
 
-	let length = 0;
-	let contents = init();
-	const textDecoder = new TextDecoder();
+	const state = init();
+	state.length = 0;
 
 	try {
 		for await (const chunk of stream) {
 			const chunkType = getChunkType(chunk);
-			const convertedChunk = convertChunk[chunkType](chunk, textDecoder);
-			const chunkSize = getSize(convertedChunk);
-
-			if (length + chunkSize > maxBuffer) {
-				throw new MaxBufferError();
-			}
-
-			const newLength = length + chunkSize;
-			contents = addChunk(convertedChunk, contents, newLength, length);
-			length = newLength;
+			const convertedChunk = convertChunk[chunkType](chunk, state);
+			appendChunk({convertedChunk, state, getSize, addChunk, maxBuffer});
 		}
 
-		return finalize(contents, length, textDecoder);
+		appendFinalChunk({state, convertChunk, getSize, addChunk, getFinalChunk, maxBuffer});
+		return finalize(state);
 	} catch (error) {
-		error.bufferedData = finalize(contents, length, textDecoder);
+		error.bufferedData = finalize(state);
 		throw error;
 	}
+};
+
+const appendFinalChunk = ({state, getSize, addChunk, getFinalChunk, maxBuffer}) => {
+	const convertedChunk = getFinalChunk(state);
+	if (convertedChunk !== undefined) {
+		appendChunk({convertedChunk, state, getSize, addChunk, maxBuffer});
+	}
+};
+
+const appendChunk = ({convertedChunk, state, getSize, addChunk, maxBuffer}) => {
+	const chunkSize = getSize(convertedChunk);
+	const newLength = state.length + chunkSize;
+
+	if (newLength > maxBuffer) {
+		throw new MaxBufferError();
+	}
+
+	state.contents = addChunk(convertedChunk, state, newLength);
+	state.length = newLength;
 };
 
 const isAsyncIterable = stream => typeof stream === 'object' && stream !== null && typeof stream[Symbol.asyncIterator] === 'function';

@@ -1,11 +1,11 @@
 import {getStreamContents} from './contents.js';
-import {throwObjectStream, getLengthProp} from './utils.js';
+import {noop, throwObjectStream, getLengthProp} from './utils.js';
 
 export async function getStreamAsArrayBuffer(stream, options) {
 	return getStreamContents(stream, arrayBufferMethods, options);
 }
 
-const initArrayBuffer = () => new ArrayBuffer(0);
+const initArrayBuffer = () => ({contents: new ArrayBuffer(0)});
 
 const useTextEncoder = chunk => textEncoder.encode(chunk);
 const textEncoder = new TextEncoder();
@@ -15,7 +15,7 @@ const useUint8Array = chunk => new Uint8Array(chunk);
 const useUint8ArrayWithOffset = chunk => new Uint8Array(chunk.buffer, chunk.byteOffset, chunk.byteLength);
 
 // `contents` is an increasingly growing `Uint8Array`.
-const addArrayBufferChunk = (convertedChunk, contents, length, previousLength) => {
+const addArrayBufferChunk = (convertedChunk, {contents, length: previousLength}, length) => {
 	const newContents = hasArrayBufferResize() ? resizeArrayBuffer(contents, length) : resizeArrayBufferSlow(contents, length);
 	new Uint8Array(newContents).set(convertedChunk, previousLength);
 	return newContents;
@@ -54,7 +54,7 @@ const getNewContentsLength = length => SCALE_FACTOR ** Math.ceil(Math.log(length
 
 const SCALE_FACTOR = 2;
 
-const finalizeArrayBuffer = (contents, length) => hasArrayBufferResize() ? contents : contents.slice(0, length);
+const finalizeArrayBuffer = ({contents, length}) => hasArrayBufferResize() ? contents : contents.slice(0, length);
 
 // `ArrayBuffer.slice()` is slow. When `ArrayBuffer.resize()` is available
 // (Node >=20.0.0, Safari >=16.4 and Chrome), we can use it instead.
@@ -76,5 +76,6 @@ const arrayBufferMethods = {
 	},
 	getSize: getLengthProp,
 	addChunk: addArrayBufferChunk,
+	getFinalChunk: noop,
 	finalize: finalizeArrayBuffer,
 };
