@@ -112,6 +112,11 @@ test('get stream with truncated UTF-8 sequences', async t => {
 	t.is(result, `${multiByteString.slice(0, -1)}${INVALID_UTF8_MARKER}`);
 });
 
+test('handles truncated UTF-8 sequences over maxBuffer', async t => {
+	const maxBuffer = multiByteString.length - 1;
+	await t.throwsAsync(setupString(multiByteBuffer.slice(0, -1), {maxBuffer}), {instanceOf: MaxBufferError});
+});
+
 test('get stream with invalid UTF-8 sequences', async t => {
 	const result = await setupString(multiByteBuffer.slice(1, 2));
 	t.is(result, INVALID_UTF8_MARKER);

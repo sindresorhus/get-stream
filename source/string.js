@@ -1,17 +1,20 @@
 import {getStreamContents} from './contents.js';
-import {identity, throwObjectStream, getLengthProp} from './utils.js';
+import {identity, getContentsProp, throwObjectStream, getLengthProp} from './utils.js';
 
 export async function getStreamAsString(stream, options) {
 	return getStreamContents(stream, stringMethods, options);
 }
 
-const initString = () => '';
+const initString = () => ({contents: '', textDecoder: new TextDecoder()});
 
-const useTextDecoder = (chunk, textDecoder) => textDecoder.decode(chunk, {stream: true});
+const useTextDecoder = (chunk, {textDecoder}) => textDecoder.decode(chunk, {stream: true});
 
-const addStringChunk = (convertedChunk, contents) => contents + convertedChunk;
+const addStringChunk = (convertedChunk, {contents}) => contents + convertedChunk;
 
-const finalizeString = (contents, length, textDecoder) => `${contents}${textDecoder.decode()}`;
+const getFinalStringChunk = ({textDecoder}) => {
+	const finalChunk = textDecoder.decode();
+	return finalChunk === '' ? undefined : finalChunk;
+};
 
 const stringMethods = {
 	init: initString,
@@ -25,5 +28,6 @@ const stringMethods = {
 	},
 	getSize: getLengthProp,
 	addChunk: addStringChunk,
-	finalize: finalizeString,
+	getFinalChunk: getFinalStringChunk,
+	finalize: getContentsProp,
 };
