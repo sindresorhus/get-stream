@@ -23,8 +23,7 @@ import {
 	bigArray,
 } from './fixtures/index.js';
 
-const fixtureArray = [{}];
-const longArray = [...fixtureArray, {}];
+const fixtureArray = [{}, {}];
 
 const setupArray = (streamDef, options) => getStreamAsArray(createStream(streamDef), options);
 
@@ -64,9 +63,29 @@ test('get stream from symbol to array', allowsAnyChunkType, Symbol('test'));
 
 test('maxBuffer unit is each array element with getStreamAsArray()', async t => {
 	const maxBuffer = fixtureArray.length;
-	await t.throwsAsync(setupArray(longArray, {maxBuffer}), {instanceOf: MaxBufferError});
+	await t.throwsAsync(setupArray([...fixtureArray, ...fixtureArray], {maxBuffer}), {instanceOf: MaxBufferError});
 	await t.notThrowsAsync(setupArray(fixtureArray, {maxBuffer}));
 });
+
+const checkBufferedData = async (t, fixtureValue, expectedResult) => {
+	const maxBuffer = expectedResult.length;
+	const {bufferedData} = await t.throwsAsync(setupArray(fixtureValue, {maxBuffer}), {instanceOf: MaxBufferError});
+	t.is(bufferedData.length, maxBuffer);
+	t.deepEqual(expectedResult, bufferedData);
+};
+
+test(
+	'set error.bufferedData when `maxBuffer` is hit, with a single chunk',
+	checkBufferedData,
+	fixtureArray,
+	fixtureArray.slice(0, 1),
+);
+test(
+	'set error.bufferedData when `maxBuffer` is hit, with multiple chunks',
+	checkBufferedData,
+	[...fixtureArray, ...fixtureArray],
+	[...fixtureArray, ...fixtureArray.slice(0, 1)],
+);
 
 test('getStreamAsArray() behaves like readable.toArray()', async t => {
 	const [nativeResult, customResult] = await Promise.all([

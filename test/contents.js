@@ -9,7 +9,6 @@ import {
 	fixtureArrayBuffer,
 	fixtureUint16Array,
 	fixtureDataView,
-	fixtureLength,
 } from './fixtures/index.js';
 
 const setupString = (streamDef, options) => getStream(createStream(streamDef), options);
@@ -36,13 +35,6 @@ test('getStream should not affect additional listeners attached to the stream', 
 	const fixture = createStream(['foo', 'bar']);
 	fixture.on('data', chunk => t.true(typeof chunk === 'string'));
 	t.is(await getStream(fixture), 'foobar');
-});
-
-test('set error.bufferedData when `maxBuffer` is hit', async t => {
-	const maxBuffer = fixtureLength - 1;
-	const {bufferedData} = await t.throwsAsync(setupString([...fixtureString], {maxBuffer}), {instanceOf: MaxBufferError});
-	t.true(fixtureString.startsWith(bufferedData));
-	t.true(bufferedData.length <= maxBuffer);
 });
 
 const errorStream = async function * () {

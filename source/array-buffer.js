@@ -14,6 +14,8 @@ const useUint8Array = chunk => new Uint8Array(chunk);
 
 const useUint8ArrayWithOffset = chunk => new Uint8Array(chunk.buffer, chunk.byteOffset, chunk.byteLength);
 
+const truncateArrayBufferChunk = (convertedChunk, chunkSize) => convertedChunk.slice(0, chunkSize);
+
 // `contents` is an increasingly growing `Uint8Array`.
 const addArrayBufferChunk = (convertedChunk, {contents, length: previousLength}, length) => {
 	const newContents = hasArrayBufferResize() ? resizeArrayBuffer(contents, length) : resizeArrayBufferSlow(contents, length);
@@ -75,6 +77,7 @@ const arrayBufferMethods = {
 		others: throwObjectStream,
 	},
 	getSize: getLengthProp,
+	truncateChunk: truncateArrayBufferChunk,
 	addChunk: addArrayBufferChunk,
 	getFinalChunk: noop,
 	finalize: finalizeArrayBuffer,

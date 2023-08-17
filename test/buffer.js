@@ -76,6 +76,26 @@ const checkMaxBuffer = async (t, longValue, shortValue, maxBuffer) => {
 test('maxBuffer throws when size is exceeded with a buffer', checkMaxBuffer, longBuffer, fixtureBuffer, fixtureLength);
 test('maxBuffer unit is bytes with getStreamAsBuffer()', checkMaxBuffer, longMultibyteBuffer, fixtureMultibyteBuffer, fixtureMultibyteBuffer.byteLength);
 
+const checkBufferedData = async (t, fixtureValue, expectedResult) => {
+	const maxBuffer = expectedResult.length;
+	const {bufferedData} = await t.throwsAsync(setupBuffer(fixtureValue, {maxBuffer}), {instanceOf: MaxBufferError});
+	t.is(bufferedData.length, maxBuffer);
+	t.deepEqual(expectedResult, bufferedData);
+};
+
+test(
+	'set error.bufferedData when `maxBuffer` is hit, with a single chunk',
+	checkBufferedData,
+	[fixtureBuffer],
+	fixtureBuffer.slice(0, 1),
+);
+test(
+	'set error.bufferedData when `maxBuffer` is hit, with multiple chunks',
+	checkBufferedData,
+	[fixtureBuffer, fixtureBuffer],
+	Buffer.from([...fixtureBuffer, ...fixtureBuffer.slice(0, 1)]),
+);
+
 test('getStreamAsBuffer() behaves like buffer()', async t => {
 	const [nativeResult, customResult] = await Promise.all([
 		buffer(createStream([bigBuffer])),
