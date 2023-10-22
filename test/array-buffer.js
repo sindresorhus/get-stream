@@ -1,4 +1,4 @@
-import {Buffer, constants as BufferConstants, Blob} from 'node:buffer';
+import {Buffer, constants as BufferConstants} from 'node:buffer';
 import {arrayBuffer, blob} from 'node:stream/consumers';
 import test from 'ava';
 import {getStreamAsArrayBuffer, MaxBufferError} from '../source/index.js';
