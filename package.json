@@ -16,7 +16,7 @@
 		"default": "./source/index.js"
 	},
 	"engines": {
-		"node": ">=16"
+		"node": ">=18"
 	},
 	"scripts": {
 		"benchmark": "node benchmarks/index.js",
@@ -43,11 +43,11 @@
 		"concat"
 	],
 	"devDependencies": {
-		"@types/node": "^20.5.0",
+		"@types/node": "^20.8.9",
 		"ava": "^5.3.1",
-		"precise-now": "^2.0.0",
+		"precise-now": "^3.0.0",
 		"stream-json": "^1.8.0",
-		"tsd": "^0.28.1",
+		"tsd": "^0.29.0",
 		"xo": "^0.56.0"
 	}
 }
