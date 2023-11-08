@@ -16,6 +16,7 @@
 		"browser": "./source/exports.js",
 		"default": "./source/index.js"
 	},
+	"sideEffects": false,
 	"engines": {
 		"node": ">=18"
 	},
