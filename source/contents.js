@@ -16,8 +16,9 @@ export const getStreamContents = async (stream, {init, convertChunk, getSize, tr
 		appendFinalChunk({state, convertChunk, getSize, truncateChunk, addChunk, getFinalChunk, maxBuffer});
 		return finalize(state);
 	} catch (error) {
-		error.bufferedData = finalize(state);
-		throw error;
+		const normalizedError = typeof error === 'object' && error !== null ? error : new Error(error);
+		normalizedError.bufferedData = finalize(state);
+		throw normalizedError;
 	}
 };
 
