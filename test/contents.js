@@ -37,16 +37,21 @@ test('getStream should not affect additional listeners attached to the stream', 
 	t.is(await getStream(fixture), 'foobar');
 });
 
-const errorStream = async function * () {
+const errorStream = async function * (error) {
 	yield fixtureString;
 	await setTimeout(0);
-	throw new Error('test');
+	throw error;
 };
 
-test('set error.bufferedData when stream errors', async t => {
-	const {bufferedData} = await t.throwsAsync(setupString(errorStream));
+const testErrorStream = async (t, error) => {
+	const {bufferedData} = await t.throwsAsync(setupString(errorStream.bind(undefined, error)));
 	t.is(bufferedData, fixtureString);
-});
+};
+
+test('set error.bufferedData when stream errors', testErrorStream, new Error('test'));
+test('set error.bufferedData when stream error string', testErrorStream, 'test');
+test('set error.bufferedData when stream error null', testErrorStream, null);
+test('set error.bufferedData when stream error undefined', testErrorStream, undefined);
 
 const infiniteIteration = async function * () {
 	while (true) {
