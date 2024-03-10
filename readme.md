@@ -60,6 +60,8 @@ const {body: readableStream} = await fetch('https://example.com');
 console.log(await getStream(readableStream));
 ```
 
+This works in any browser, even [the ones](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream#browser_compatibility) not supporting `ReadableStream.values()` yet.
+
 ### Async iterables
 
 ```js

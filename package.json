@@ -43,6 +43,7 @@
 		"concat"
 	],
 	"dependencies": {
+		"@sec-ant/readable-stream": "^0.3.2",
 		"is-stream": "^4.0.1"
 	},
 	"devDependencies": {
