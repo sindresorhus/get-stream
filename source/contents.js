@@ -10,10 +10,25 @@ export const getStreamContents = async (stream, {init, convertChunk, getSize, tr
 		for await (const chunk of asyncIterable) {
 			const chunkType = getChunkType(chunk);
 			const convertedChunk = convertChunk[chunkType](chunk, state);
-			appendChunk({convertedChunk, state, getSize, truncateChunk, addChunk, maxBuffer});
+			appendChunk({
+				convertedChunk,
+				state,
+				getSize,
+				truncateChunk,
+				addChunk,
+				maxBuffer,
+			});
 		}
 
-		appendFinalChunk({state, convertChunk, getSize, truncateChunk, addChunk, getFinalChunk, maxBuffer});
+		appendFinalChunk({
+			state,
+			convertChunk,
+			getSize,
+			truncateChunk,
+			addChunk,
+			getFinalChunk,
+			maxBuffer,
+		});
 		return finalize(state);
 	} catch (error) {
 		const normalizedError = typeof error === 'object' && error !== null ? error : new Error(error);
@@ -25,7 +40,14 @@ export const getStreamContents = async (stream, {init, convertChunk, getSize, tr
 const appendFinalChunk = ({state, getSize, truncateChunk, addChunk, getFinalChunk, maxBuffer}) => {
 	const convertedChunk = getFinalChunk(state);
 	if (convertedChunk !== undefined) {
-		appendChunk({convertedChunk, state, getSize, truncateChunk, addChunk, maxBuffer});
+		appendChunk({
+			convertedChunk,
+			state,
+			getSize,
+			truncateChunk,
+			addChunk,
+			maxBuffer,
+		});
 	}
 };
 
@@ -63,7 +85,6 @@ const getChunkType = chunk => {
 		return 'others';
 	}
 
-	// eslint-disable-next-line n/prefer-global/buffer
 	if (globalThis.Buffer?.isBuffer(chunk)) {
 		return 'buffer';
 	}

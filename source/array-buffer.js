@@ -1,5 +1,5 @@
 import {getStreamContents} from './contents.js';
-import {noop, throwObjectStream, getLengthProp} from './utils.js';
+import {noop, throwObjectStream, getLengthProperty} from './utils.js';
 
 export async function getStreamAsArrayBuffer(stream, options) {
 	return getStreamContents(stream, arrayBufferMethods, options);
@@ -76,7 +76,7 @@ const arrayBufferMethods = {
 		typedArray: useUint8ArrayWithOffset,
 		others: throwObjectStream,
 	},
-	getSize: getLengthProp,
+	getSize: getLengthProperty,
 	truncateChunk: truncateArrayBufferChunk,
 	addChunk: addArrayBufferChunk,
 	getFinalChunk: noop,

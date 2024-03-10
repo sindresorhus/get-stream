@@ -1,9 +1,9 @@
 import {Duplex, Readable} from 'node:stream';
 import {finished} from 'node:stream/promises';
 
-export const createStream = streamDef => typeof streamDef === 'function'
-	? Duplex.from(streamDef)
-	: Readable.from(streamDef);
+export const createStream = streamDefinition => typeof streamDefinition === 'function'
+	? Duplex.from(streamDefinition)
+	: Readable.from(streamDefinition);
 
 // @todo Use ReadableStream.from() after dropping support for Node 18
 export const readableStreamFrom = chunks => new ReadableStream({

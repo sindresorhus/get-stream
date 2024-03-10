@@ -9,7 +9,7 @@ import {fixtureString, fixtureBuffer, fixtureUtf16} from './fixtures/index.js';
 
 const TEST_URL = 'https://nodejs.org/dist/index.json';
 
-const createReadableStream = streamDef => Duplex.toWeb(Duplex.from(streamDef)).readable;
+const createReadableStream = streamDefinition => Duplex.toWeb(Duplex.from(streamDefinition)).readable;
 
 test('works with opendir()', async t => {
 	const directoryFiles = await opendir('.');

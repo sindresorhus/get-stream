@@ -32,7 +32,7 @@ const fixtureMultibyteUint16Array = new Uint16Array([0, 0]);
 const longMultibyteUint16Array = new Uint16Array([0, 0, 0]);
 const bigArrayBuffer = new Uint8Array(bigArray).buffer;
 
-const setupArrayBuffer = (streamDef, options) => getStreamAsArrayBuffer(createStream(streamDef), options);
+const setupArrayBuffer = (streamDefinition, options) => getStreamAsArrayBuffer(createStream(streamDefinition), options);
 
 const getStreamToArrayBuffer = async (t, fixtureValue) => {
 	const result = await setupArrayBuffer(fixtureValue);

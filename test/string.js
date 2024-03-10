@@ -32,7 +32,7 @@ const multiByteUint8Array = new TextEncoder().encode(multiByteString);
 const multiByteBuffer = [...multiByteUint8Array].map(byte => Buffer.from([byte]));
 const INVALID_UTF8_MARKER = '\uFFFD';
 
-const setupString = (streamDef, options) => getStream(createStream(streamDef), options);
+const setupString = (streamDefinition, options) => getStream(createStream(streamDefinition), options);
 
 const getStreamToString = async (t, fixtureValue) => {
 	const result = await setupString(fixtureValue);

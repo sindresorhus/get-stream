@@ -11,7 +11,7 @@ import {
 	fixtureDataView,
 } from './fixtures/index.js';
 
-const setupString = (streamDef, options) => getStream(createStream(streamDef), options);
+const setupString = (streamDefinition, options) => getStream(createStream(streamDefinition), options);
 
 const generator = async function * () {
 	yield 'a';

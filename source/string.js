@@ -1,5 +1,10 @@
 import {getStreamContents} from './contents.js';
-import {identity, getContentsProp, throwObjectStream, getLengthProp} from './utils.js';
+import {
+	identity,
+	getContentsProperty,
+	throwObjectStream,
+	getLengthProperty,
+} from './utils.js';
 
 export async function getStreamAsString(stream, options) {
 	return getStreamContents(stream, stringMethods, options);
@@ -28,9 +33,9 @@ const stringMethods = {
 		typedArray: useTextDecoder,
 		others: throwObjectStream,
 	},
-	getSize: getLengthProp,
+	getSize: getLengthProperty,
 	truncateChunk: truncateStringChunk,
 	addChunk: addStringChunk,
 	getFinalChunk: getFinalStringChunk,
-	finalize: getContentsProp,
+	finalize: getContentsProperty,
 };

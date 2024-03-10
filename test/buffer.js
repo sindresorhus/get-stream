@@ -31,7 +31,7 @@ const fixtureMultibyteBuffer = Buffer.from(fixtureMultibyteString);
 const longMultibyteBuffer = Buffer.from(longMultibyteString);
 const bigBuffer = Buffer.from(bigArray);
 
-const setupBuffer = (streamDef, options) => getStreamAsBuffer(createStream(streamDef), options);
+const setupBuffer = (streamDefinition, options) => getStreamAsBuffer(createStream(streamDefinition), options);
 
 const getStreamToBuffer = async (t, fixtureValue) => {
 	const result = await setupBuffer(fixtureValue);
@@ -104,7 +104,6 @@ test('getStreamAsBuffer() behaves like buffer()', async t => {
 	t.deepEqual(nativeResult, customResult);
 });
 
-/* eslint-disable n/prefer-global/buffer */
 test('getStreamAsBuffer() only works in Node', async t => {
 	const {Buffer} = globalThis;
 	delete globalThis.Buffer;
@@ -114,4 +113,3 @@ test('getStreamAsBuffer() only works in Node', async t => {
 		globalThis.Buffer = Buffer;
 	}
 });
-/* eslint-enable n/prefer-global/buffer */

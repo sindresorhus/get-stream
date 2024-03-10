@@ -6,6 +6,7 @@ export class MaxBufferError extends Error {
 	constructor();
 }
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 type TextStreamItem = string | Buffer | ArrayBuffer | ArrayBufferView;
 export type AnyStream<SteamItem = TextStreamItem> = Readable | ReadableStream<SteamItem> | AsyncIterable<SteamItem>;
 
@@ -86,6 +87,7 @@ const stream = fs.createReadStream('unicorn.png');
 console.log(await getStreamAsBuffer(stream));
 ```
 */
+// eslint-disable-next-line @typescript-eslint/ban-types
 export function getStreamAsBuffer(stream: AnyStream, options?: Options): Promise<Buffer>;
 
 /**
