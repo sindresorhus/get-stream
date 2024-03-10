@@ -23,10 +23,7 @@ const getStreamIterable = async function * (stream) {
 	handleStreamEnd(stream, controller, state);
 
 	try {
-		for await (const [chunk] of nodeImports.events.on(stream, 'data', {
-			signal: controller.signal,
-			highWatermark: stream.readableHighWaterMark,
-		})) {
+		for await (const [chunk] of nodeImports.events.on(stream, 'data', {signal: controller.signal})) {
 			yield chunk;
 		}
 	} catch (error) {
