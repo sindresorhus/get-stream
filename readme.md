@@ -4,7 +4,7 @@
 
 ## Features
 
-- Works in any JavaScript environment ([Node.js](#nodejs-streams), [browsers](#web-streams), etc.).
+- Works in any JavaScript environment ([Node.js](#nodejs-streams), [browsers](#browser-support), etc.).
 - Supports [text streams](#getstreamstream-options), [binary streams](#getstreamasbufferstream-options) and [object streams](#getstreamasarraystream-options).
 - Supports [async iterables](#async-iterables).
 - Can set a [maximum stream size](#maxbuffer).
@@ -143,6 +143,16 @@ try {
 	//=> 'unicorn'
 }
 ```
+
+## Browser support
+
+For this module to work in browsers, a bundler must be used that either:
+- Supports the [`exports.browser`](https://nodejs.org/api/packages.html#community-conditions-definitions) field in `package.json`
+- Strips or ignores `node:*` imports
+
+Most bundlers (such as [Webpack](https://webpack.js.org/guides/package-exports/#target-environment)) support either of these.
+
+Additionally, browsers support [web streams](#web-streams) and [async iterables](#async-iterables), but not [Node.js streams](#nodejs-streams).
 
 ## Tips
 
