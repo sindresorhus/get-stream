@@ -1,5 +1,5 @@
 import {isReadableStream} from 'is-stream';
-import {ponyfill} from './web-stream.js';
+import {asyncIterator} from '@sec-ant/readable-stream/ponyfill';
 
 export const getAsyncIterable = stream => {
 	if (isReadableStream(stream, {checkOpen: false}) && nodeImports.on !== undefined) {
@@ -12,7 +12,7 @@ export const getAsyncIterable = stream => {
 
 	// `ReadableStream[Symbol.asyncIterator]` support is missing in multiple browsers, so we ponyfill it
 	if (toString.call(stream) === '[object ReadableStream]') {
-		return ponyfill.asyncIterator.call(stream);
+		return asyncIterator.call(stream);
 	}
 
 	throw new TypeError('The first argument must be a Readable, a ReadableStream, or an async iterable.');
