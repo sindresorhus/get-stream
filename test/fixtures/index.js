@@ -30,4 +30,4 @@ export const longString = `${fixtureString}..`;
 export const fixtureMultibyteString = '\u1000';
 export const longMultibyteString = `${fixtureMultibyteString}\u1000`;
 
-export const bigArray = Array.from({length: 1e6}, () => Math.floor(Math.random() * (2 ** 8)));
+export const bigArray = Array.from({length: 1e5}, () => Math.floor(Math.random() * (2 ** 8)));
