@@ -24,6 +24,24 @@ test('works with async iterable', async t => {
 	t.is(result, 'ab');
 });
 
+const finallyGenerator = async function * (state) {
+	try {
+		yield {};
+	} catch (error) {
+		state.error = true;
+		throw error;
+	} finally {
+		state.finally = true;
+	}
+};
+
+test('async iterable .return() is called on error, but not .throw()', async t => {
+	const state = {error: false, finally: false};
+	await t.throwsAsync(getStream(finallyGenerator(state)));
+	t.false(state.error);
+	t.true(state.finally);
+});
+
 test('get stream with mixed chunk types', async t => {
 	const fixtures = [fixtureString, fixtureBuffer, fixtureArrayBuffer, fixtureTypedArray, fixtureUint16Array, fixtureDataView];
 	const result = await setupString(fixtures);
