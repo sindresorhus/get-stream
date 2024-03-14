@@ -1,13 +1,13 @@
+import {getAsyncIterable} from './stream.js';
+
 export const getStreamContents = async (stream, {init, convertChunk, getSize, truncateChunk, addChunk, getFinalChunk, finalize}, {maxBuffer = Number.POSITIVE_INFINITY} = {}) => {
-	if (!isAsyncIterable(stream)) {
-		throw new Error('The first argument must be a Readable, a ReadableStream, or an async iterable.');
-	}
+	const asyncIterable = getAsyncIterable(stream);
 
 	const state = init();
 	state.length = 0;
 
 	try {
-		for await (const chunk of stream) {
+		for await (const chunk of asyncIterable) {
 			const chunkType = getChunkType(chunk);
 			const convertedChunk = convertChunk[chunkType](chunk, state);
 			appendChunk({convertedChunk, state, getSize, truncateChunk, addChunk, maxBuffer});
@@ -51,8 +51,6 @@ const addNewChunk = (convertedChunk, state, addChunk, newLength) => {
 	state.contents = addChunk(convertedChunk, state, newLength);
 	state.length = newLength;
 };
-
-const isAsyncIterable = stream => typeof stream === 'object' && stream !== null && typeof stream[Symbol.asyncIterator] === 'function';
 
 const getChunkType = chunk => {
 	const typeOfChunk = typeof chunk;

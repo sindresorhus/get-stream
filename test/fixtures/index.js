@@ -31,3 +31,5 @@ export const fixtureMultibyteString = '\u1000';
 export const longMultibyteString = `${fixtureMultibyteString}\u1000`;
 
 export const bigArray = Array.from({length: 1e5}, () => Math.floor(Math.random() * (2 ** 8)));
+
+export const prematureClose = {code: 'ERR_STREAM_PREMATURE_CLOSE'};
