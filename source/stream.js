@@ -2,7 +2,7 @@ import {isReadableStream} from 'is-stream';
 import {ponyfill} from './web-stream.js';
 
 export const getAsyncIterable = stream => {
-	if (isReadableStream(stream, {checkOpen: false})) {
+	if (isReadableStream(stream, {checkOpen: false}) && nodeImports.on !== undefined) {
 		return getStreamIterable(stream);
 	}
 
@@ -22,16 +22,12 @@ const {toString} = Object.prototype;
 
 // The default iterable for Node.js streams does not allow for multiple readers at once, so we re-implement it
 const getStreamIterable = async function * (stream) {
-	if (nodeImports === undefined) {
-		await loadNodeImports();
-	}
-
 	const controller = new AbortController();
 	const state = {};
 	handleStreamEnd(stream, controller, state);
 
 	try {
-		for await (const [chunk] of nodeImports.events.on(stream, 'data', {signal: controller.signal})) {
+		for await (const [chunk] of nodeImports.on(stream, 'data', {signal: controller.signal})) {
 			yield chunk;
 		}
 	} catch (error) {
@@ -51,7 +47,7 @@ const getStreamIterable = async function * (stream) {
 
 const handleStreamEnd = async (stream, controller, state) => {
 	try {
-		await nodeImports.streamPromises.finished(stream, {cleanup: true, readable: true, writable: false, error: false});
+		await nodeImports.finished(stream, {cleanup: true, readable: true, writable: false, error: false});
 	} catch (error) {
 		state.error = error;
 	} finally {
@@ -59,13 +55,6 @@ const handleStreamEnd = async (stream, controller, state) => {
 	}
 };
 
-// Use dynamic imports to support browsers
-const loadNodeImports = async () => {
-	const [events, streamPromises] = await Promise.all([
-		import('node:events'),
-		import('node:stream/promises'),
-	]);
-	nodeImports = {events, streamPromises};
-};
-
-let nodeImports;
+// Loaded by the Node entrypoint, but not by the browser one.
+// This prevents using dynamic imports.
+export const nodeImports = {};

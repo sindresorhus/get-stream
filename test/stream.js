@@ -27,6 +27,17 @@ const assertReadFail = assertStream.bind(undefined, {writableEnded: true});
 const assertWriteFail = assertStream.bind(undefined, {readableEnded: true});
 const assertBothFail = assertStream.bind(undefined, {});
 
+test('Can emit "error" event right after getStream()', async t => {
+	const stream = Readable.from([fixtureString]);
+	t.is(stream.listenerCount('error'), 0);
+	const promise = getStream(stream);
+	t.is(stream.listenerCount('error'), 1);
+
+	const error = new Error('test');
+	stream.emit('error', error);
+	t.is(await t.throwsAsync(promise), error);
+});
+
 const testSuccess = async (t, StreamClass) => {
 	const stream = StreamClass.from(fixtureMultiString);
 	t.true(stream instanceof StreamClass);

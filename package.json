@@ -13,6 +13,7 @@
 	"type": "module",
 	"exports": {
 		"types": "./source/index.d.ts",
+		"browser": "./source/exports.js",
 		"default": "./source/index.js"
 	},
 	"engines": {
