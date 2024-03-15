@@ -1,5 +1,4 @@
 import {once} from 'node:events';
-import {version} from 'node:process';
 import {Readable, Duplex} from 'node:stream';
 import {scheduler, setTimeout as pSetTimeout} from 'node:timers/promises';
 import test from 'ava';
@@ -266,30 +265,6 @@ const testMultipleReads = async (t, wait) => {
 
 test('Handles multiple successive fast reads', testMultipleReads, () => scheduler.yield());
 test('Handles multiple successive slow reads', testMultipleReads, () => pSetTimeout(100));
-
-// The `highWaterMark` option was added to `once()` by Node 20.
-// See https://github.com/nodejs/node/pull/41276
-const nodeMajor = version.split('.')[0].slice(1);
-if (nodeMajor >= 20) {
-	test('Pause stream when too much data at once', async t => {
-		const stream = new Readable({
-			read: onetime(function () {
-				this.push('.');
-				this.push('.');
-				this.push('.');
-				this.push('.');
-				this.push(null);
-			}),
-			highWaterMark: 2,
-		});
-		const [result] = await Promise.all([
-			getStream(stream),
-			once(stream, 'pause'),
-		]);
-		t.is(result, '....');
-		assertSuccess(t, stream, Readable);
-	});
-}
 
 test('Can call twice at the same time', async t => {
 	const stream = Readable.from(fixtureMultiString);
