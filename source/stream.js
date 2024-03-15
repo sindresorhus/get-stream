@@ -1,16 +1,24 @@
 import {isReadableStream} from 'is-stream';
+import {ponyfill} from './web-stream.js';
 
 export const getAsyncIterable = stream => {
 	if (isReadableStream(stream, {checkOpen: false})) {
 		return getStreamIterable(stream);
 	}
 
-	if (typeof stream?.[Symbol.asyncIterator] !== 'function') {
-		throw new TypeError('The first argument must be a Readable, a ReadableStream, or an async iterable.');
+	if (typeof stream?.[Symbol.asyncIterator] === 'function') {
+		return stream;
 	}
 
-	return stream;
+	// `ReadableStream[Symbol.asyncIterator]` support is missing in multiple browsers, so we ponyfill it
+	if (toString.call(stream) === '[object ReadableStream]') {
+		return ponyfill.asyncIterator.call(stream);
+	}
+
+	throw new TypeError('The first argument must be a Readable, a ReadableStream, or an async iterable.');
 };
+
+const {toString} = Object.prototype;
 
 // The default iterable for Node.js streams does not allow for multiple readers at once, so we re-implement it
 const getStreamIterable = async function * (stream) {

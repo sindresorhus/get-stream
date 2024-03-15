@@ -1,14 +1,13 @@
 import {once} from 'node:events';
 import {version} from 'node:process';
 import {Readable, Duplex} from 'node:stream';
-import {finished} from 'node:stream/promises';
 import {scheduler, setTimeout as pSetTimeout} from 'node:timers/promises';
 import test from 'ava';
 import onetime from 'onetime';
 import getStream, {getStreamAsArray, MaxBufferError} from '../source/index.js';
 import {fixtureString, fixtureMultiString, prematureClose} from './fixtures/index.js';
+import {onFinishedStream} from './helpers/index.js';
 
-const onFinishedStream = stream => finished(stream, {cleanup: true});
 const noopMethods = {read() {}, write() {}};
 
 // eslint-disable-next-line max-params
