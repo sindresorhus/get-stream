@@ -2,8 +2,20 @@ import {Buffer} from 'node:buffer';
 import {open} from 'node:fs/promises';
 import {type Readable} from 'node:stream';
 import fs from 'node:fs';
-import {expectType, expectError, expectAssignable, expectNotAssignable} from 'tsd';
-import getStream, {getStreamAsBuffer, getStreamAsArrayBuffer, getStreamAsArray, MaxBufferError, type Options, type AnyStream} from './index.js';
+import {
+	expectType,
+	expectError,
+	expectAssignable,
+	expectNotAssignable,
+} from 'tsd';
+import getStream, {
+	getStreamAsBuffer,
+	getStreamAsArrayBuffer,
+	getStreamAsArray,
+	MaxBufferError,
+	type Options,
+	type AnyStream,
+} from './index.js';
 
 const nodeStream = fs.createReadStream('foo') as Readable;
 
@@ -35,6 +47,7 @@ expectError(await getStream(nodeStream, {maxBuffer: '10'}));
 expectError(await getStream(nodeStream, {unknownOption: 10}));
 expectError(await getStream(nodeStream, {maxBuffer: 10}, {}));
 
+/* eslint-disable @typescript-eslint/ban-types */
 expectType<Buffer>(await getStreamAsBuffer(nodeStream));
 expectType<Buffer>(await getStreamAsBuffer(nodeStream, {maxBuffer: 10}));
 expectType<Buffer>(await getStreamAsBuffer(readableStream));
@@ -43,6 +56,7 @@ expectType<Buffer>(await getStreamAsBuffer(bufferAsyncIterable));
 expectType<Buffer>(await getStreamAsBuffer(arrayBufferAsyncIterable));
 expectType<Buffer>(await getStreamAsBuffer(dataViewAsyncIterable));
 expectType<Buffer>(await getStreamAsBuffer(typedArrayAsyncIterable));
+/* eslint-enable @typescript-eslint/ban-types */
 expectError(await getStreamAsBuffer(objectAsyncIterable));
 expectError(await getStreamAsBuffer({}));
 expectError(await getStreamAsBuffer(nodeStream, {maxBuffer: '10'}));
@@ -68,6 +82,7 @@ expectType<any[]>(await getStreamAsArray(nodeStream, {maxBuffer: 10}));
 expectType<any[]>(await getStreamAsArray(readableStream));
 expectType<Uint8Array[]>(await getStreamAsArray(readableStream as ReadableStream<Uint8Array>));
 expectType<string[]>(await getStreamAsArray(stringAsyncIterable));
+// eslint-disable-next-line @typescript-eslint/ban-types
 expectType<Buffer[]>(await getStreamAsArray(bufferAsyncIterable));
 expectType<ArrayBuffer[]>(await getStreamAsArray(arrayBufferAsyncIterable));
 expectType<DataView[]>(await getStreamAsArray(dataViewAsyncIterable));

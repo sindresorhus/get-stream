@@ -1,5 +1,5 @@
 import {getStreamContents} from './contents.js';
-import {identity, noop, getContentsProp} from './utils.js';
+import {identity, noop, getContentsProperty} from './utils.js';
 
 export async function getStreamAsArray(stream, options) {
 	return getStreamContents(stream, arrayMethods, options);
@@ -28,5 +28,5 @@ const arrayMethods = {
 	truncateChunk: noop,
 	addChunk: addArrayChunk,
 	getFinalChunk: noop,
-	finalize: getContentsProp,
+	finalize: getContentsProperty,
 };

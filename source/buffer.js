@@ -16,5 +16,4 @@ export async function getStreamAsBuffer(stream, options) {
 	}
 }
 
-// eslint-disable-next-line n/prefer-global/buffer
 const arrayBufferToNodeBuffer = arrayBuffer => globalThis.Buffer.from(arrayBuffer);

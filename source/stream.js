@@ -47,7 +47,12 @@ const getStreamIterable = async function * (stream) {
 
 const handleStreamEnd = async (stream, controller, state) => {
 	try {
-		await nodeImports.finished(stream, {cleanup: true, readable: true, writable: false, error: false});
+		await nodeImports.finished(stream, {
+			cleanup: true,
+			readable: true,
+			writable: false,
+			error: false,
+		});
 	} catch (error) {
 		state.error = error;
 	} finally {

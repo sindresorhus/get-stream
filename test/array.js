@@ -25,7 +25,7 @@ import {
 
 const fixtureArray = [{}, {}];
 
-const setupArray = (streamDef, options) => getStreamAsArray(createStream(streamDef), options);
+const setupArray = (streamDefinition, options) => getStreamAsArray(createStream(streamDefinition), options);
 
 const getStreamToArray = async (t, fixtureValue) => {
 	const result = await setupArray(fixtureValue);
