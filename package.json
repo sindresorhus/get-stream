@@ -50,7 +50,7 @@
 	},
 	"devDependencies": {
 		"@types/node": "^20.8.9",
-		"ava": "^5.3.1",
+		"ava": "^6.1.2",
 		"onetime": "^7.0.0",
 		"precise-now": "^3.0.0",
 		"stream-json": "^1.8.0",
