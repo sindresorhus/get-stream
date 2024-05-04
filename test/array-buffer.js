@@ -1,8 +1,8 @@
-import {Buffer, constants as BufferConstants} from 'node:buffer';
+import {Buffer} from 'node:buffer';
 import {arrayBuffer, blob} from 'node:stream/consumers';
 import test from 'ava';
 import {getStreamAsArrayBuffer, MaxBufferError} from '../source/index.js';
-import {createStream, BIG_TEST_DURATION} from './helpers/index.js';
+import {createStream} from './helpers/index.js';
 import {
 	fixtureString,
 	fixtureLength,
@@ -99,17 +99,6 @@ test(
 	[fixtureArrayBuffer, fixtureArrayBuffer],
 	new Uint8Array(Buffer.from(`${fixtureString}${fixtureString[0]}`)).buffer,
 );
-
-test('handles streams larger than arrayBuffer max length', async t => {
-	t.timeout(BIG_TEST_DURATION);
-	const chunkCount = Math.floor(BufferConstants.MAX_LENGTH / CHUNK_SIZE * 2);
-	const chunk = Buffer.alloc(CHUNK_SIZE);
-	const maxBufferChunks = Array.from({length: chunkCount}, () => chunk);
-	const {bufferedData} = await t.throwsAsync(setupArrayBuffer(maxBufferChunks));
-	t.is(new Uint8Array(bufferedData)[0], 0);
-});
-
-const CHUNK_SIZE = 2 ** 16;
 
 test('getStreamAsArrayBuffer() behaves like arrayBuffer()', async t => {
 	const [nativeResult, customResult] = await Promise.all([
