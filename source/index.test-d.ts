@@ -80,6 +80,7 @@ expectError(await getStreamAsArrayBuffer(nodeStream, {maxBuffer: 10}, {}));
 expectType<any[]>(await getStreamAsArray(nodeStream));
 expectType<any[]>(await getStreamAsArray(nodeStream, {maxBuffer: 10}));
 expectType<any[]>(await getStreamAsArray(readableStream));
+// eslint-disable-next-line n/no-unsupported-features/node-builtins
 expectType<Uint8Array[]>(await getStreamAsArray(readableStream as ReadableStream<Uint8Array>));
 expectType<string[]>(await getStreamAsArray(stringAsyncIterable));
 // eslint-disable-next-line @typescript-eslint/ban-types

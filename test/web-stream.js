@@ -18,6 +18,7 @@ test('Can use already ended ReadableStream', async t => {
 
 test('Can use already canceled ReadableStream', async t => {
 	let canceledValue;
+	// eslint-disable-next-line n/no-unsupported-features/node-builtins
 	const stream = new ReadableStream({
 		cancel(canceledError) {
 			canceledValue = canceledError;
@@ -32,6 +33,7 @@ test('Can use already canceled ReadableStream', async t => {
 
 test('Can use already errored ReadableStream', async t => {
 	const error = new Error('test');
+	// eslint-disable-next-line n/no-unsupported-features/node-builtins
 	const stream = new ReadableStream({
 		start(controller) {
 			controller.error(error);
@@ -43,6 +45,7 @@ test('Can use already errored ReadableStream', async t => {
 
 test('Cancel ReadableStream when maxBuffer is hit', async t => {
 	let canceled = false;
+	// eslint-disable-next-line n/no-unsupported-features/node-builtins
 	const stream = new ReadableStream({
 		start(controller) {
 			controller.enqueue(fixtureString);

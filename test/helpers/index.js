@@ -5,6 +5,7 @@ import {finished} from 'node:stream/promises';
 export {fromAnyIterable as readableStreamFrom} from '@sec-ant/readable-stream/ponyfill';
 
 export const createStream = streamDefinition => typeof streamDefinition === 'function'
+	// eslint-disable-next-line n/no-unsupported-features/node-builtins
 	? Duplex.from(streamDefinition)
 	: Readable.from(streamDefinition);
 

@@ -9,6 +9,7 @@ import {fixtureString, fixtureBuffer, fixtureUtf16} from './fixtures/index.js';
 
 const TEST_URL = 'https://nodejs.org/dist/index.json';
 
+// eslint-disable-next-line n/no-unsupported-features/node-builtins
 const createReadableStream = streamDefinition => Duplex.toWeb(Duplex.from(streamDefinition)).readable;
 
 test('works with opendir()', async t => {
@@ -63,6 +64,7 @@ if (!nodeVersion.startsWith('v16.')) {
 	test('works with readableWebStream({ type: "bytes" })', readableWebStream, 'bytes');
 
 	test('works with fetch()', async t => {
+		// eslint-disable-next-line n/no-unsupported-features/node-builtins
 		const {body} = await fetch(TEST_URL);
 		const result = await getStream(body);
 		const parsedResult = JSON.parse(result);
@@ -70,6 +72,7 @@ if (!nodeVersion.startsWith('v16.')) {
 	});
 
 	test('can use TextDecoderStream', async t => {
+		// eslint-disable-next-line n/no-unsupported-features/node-builtins
 		const textDecoderStream = new TextDecoderStream('utf-16le');
 		const result = await getStream(
 			createReadableStream(fixtureUtf16).pipeThrough(textDecoderStream),
