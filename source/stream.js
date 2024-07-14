@@ -12,7 +12,7 @@ export const getAsyncIterable = stream => {
 
 	// `ReadableStream[Symbol.asyncIterator]` support is missing in multiple browsers, so we ponyfill it
 	if (toString.call(stream) === '[object ReadableStream]') {
-		return asyncIterator.call(stream);
+		return asyncIterator(stream);
 	}
 
 	throw new TypeError('The first argument must be a Readable, a ReadableStream, or an async iterable.');
