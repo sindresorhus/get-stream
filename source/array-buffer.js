@@ -46,6 +46,7 @@ const resizeArrayBuffer = (contents, length) => {
 		return contents;
 	}
 
+	// eslint-disable-next-line n/no-unsupported-features/es-syntax
 	const arrayBuffer = new ArrayBuffer(length, {maxByteLength: getNewContentsLength(length)});
 	new Uint8Array(arrayBuffer).set(new Uint8Array(contents), 0);
 	return arrayBuffer;

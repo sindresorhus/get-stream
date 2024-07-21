@@ -1,12 +1,12 @@
 import {execFile} from 'node:child_process';
-import {dirname} from 'node:path';
+import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {promisify} from 'node:util';
 import test from 'ava';
 import {fixtureString} from './fixtures/index.js';
 
 const pExecFile = promisify(execFile);
-const cwd = dirname(fileURLToPath(import.meta.url));
+const cwd = path.dirname(fileURLToPath(import.meta.url));
 const nodeStreamFixture = './fixtures/node-stream.js';
 const webStreamFixture = './fixtures/web-stream.js';
 const iterableFixture = './fixtures/iterable.js';
