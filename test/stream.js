@@ -274,7 +274,6 @@ const testMultipleReads = async (t, wait) => {
 	assertSuccess(t, stream, Readable);
 };
 
-// eslint-disable-next-line n/no-unsupported-features/node-builtins
 test('Handles multiple successive fast reads', testMultipleReads, () => scheduler.yield());
 test('Handles multiple successive slow reads', testMultipleReads, () => pSetTimeout(100));
 
