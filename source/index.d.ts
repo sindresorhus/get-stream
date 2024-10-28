@@ -8,7 +8,7 @@ export class MaxBufferError extends Error {
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 type TextStreamItem = string | Buffer | ArrayBuffer | ArrayBufferView;
-// eslint-disable-next-line n/no-unsupported-features/node-builtins
+
 export type AnyStream<SteamItem = TextStreamItem> = Readable | ReadableStream<SteamItem> | AsyncIterable<SteamItem>;
 
 export type Options = {
